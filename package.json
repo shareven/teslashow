@@ -1,0 +1,56 @@
+{
+  "name": "teslashow",
+  "version": "1.0.0",
+  "description": "A modern Tesla trip data visualization system built with Next.js, designed for TeslaMate users",
+  "private": false,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next build && next start",
+    "lint": "next lint"
+  },
+  "keywords": [
+    "tesla",
+    "teslamate",
+    "next.js",
+    "material-ui",
+    "trip-tracking",
+    "data-visualization",
+    "electric-vehicle",
+    "dashboard",
+    "typescript",
+    "react"
+  ],
+  "author": "TeslaShow Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shareven/teslashow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shareven/teslashow/issues"
+  },
+  "homepage": "https://github.com/shareven/teslashow#readme",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.2.0",
+    "@mui/material": "^7.2.0",
+    "@mui/x-date-pickers": "^8.9.0",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^24.0.15",
+    "@types/pg": "^8.15.4",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.10.0",
+    "dayjs": "^1.11.13",
+    "next": "^15.4.2",
+    "pg": "^8.16.3",
+    "postcss": "^8.5.6",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3"
+  }
+}

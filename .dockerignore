@@ -1,0 +1,52 @@
+# Docker构建时忽略的文件和目录
+
+# 依赖目录
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js构建输出
+.next
+out
+
+# 环境变量文件（开发环境）
+.env.local
+.env.development
+.env.test
+
+# 日志文件
+*.log
+
+# 运行时数据
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 覆盖率目录
+coverage
+
+# IDE文件
+.vscode
+.idea
+*.swp
+*.swo
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# 文档
+README.md
+ENVIRONMENT.md
+AMAP_CONFIG.md
+
+# 其他
+.vercel
+.env.docker.example
+.env.production.example

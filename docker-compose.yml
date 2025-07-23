@@ -1,0 +1,74 @@
+services:
+  teslamate:
+    image: teslamate/teslamate:latest
+    restart: always
+    environment:
+      - ENCRYPTION_KEY=secretkey #replace with a secure key to encrypt your Tesla API tokens
+      - DATABASE_USER=teslamate
+      - DATABASE_PASS=password #insert your secure database password!
+      - DATABASE_NAME=teslamate
+      - DATABASE_HOST=database
+      - MQTT_HOST=mosquitto
+      - MQTT_IPV6=true
+    ports:
+      - 4000:4000
+    volumes:
+      - ./import:/opt/app/import
+    cap_drop:
+      - all
+
+  database:
+    image: postgres:17
+    restart: always
+    ports:
+      - 5433:5432  # 宿主机端口:容器端口5433是为测试使用，在teslashow项目在docker中还是使用5432
+    environment:
+      - POSTGRES_USER=teslamate
+      - POSTGRES_PASSWORD=password #insert your secure database password!
+      - POSTGRES_DB=teslamate
+    volumes:
+      - ./teslamate-db:/var/lib/postgresql/data
+
+  grafana:
+    image: teslamate/grafana:latest
+    restart: always
+    environment:
+      - DATABASE_USER=teslamate
+      - DATABASE_PASS=password #insert your secure database password!
+      - DATABASE_NAME=teslamate
+      - DATABASE_HOST=database
+    ports:
+      - 3000:3000
+    volumes:
+      - ./teslamate-grafana-data:/var/lib/grafana
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: always
+    command: mosquitto -c /mosquitto-no-auth.conf
+    # ports:
+    #   - 1883:1883
+    volumes:
+      - ./mosquitto-conf:/mosquitto/config
+      - ./mosquitto-data:/mosquitto/data
+
+  teslashow:
+    build: .  # Build from local Dockerfile
+    # image: teslashow:latest  # Or use pre-built image
+    depends_on:
+      - database
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=teslamate
+      - DB_USER=teslamate
+      - DB_PASSWORD=password	# Use the same password as database service
+      
+      # Amap API Configuration
+      # Please apply for your API keys at Amap Open Platform (https://lbs.amap.com/)
+      - NEXT_PUBLIC_AMAP_API_KEY=your_amap_api_key_here
+      # Amap security key - Get it from application management in Amap Open Platform
+      - NEXT_PUBLIC_AMAP_SECURITY_KEY=your_amap_security_key_here
