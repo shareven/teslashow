@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![TeslaShow Logo](public/favicon.svg)
 
 **现代化的Tesla行程数据可视化系统**
 

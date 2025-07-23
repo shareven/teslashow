@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![TeslaShow Logo](public/favicon.svg)
 
 **A Modern Tesla Trip Data Visualization System**
 
