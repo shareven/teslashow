@@ -20,8 +20,8 @@ services:
   database:
     image: postgres:17
     restart: always
-    ports:
-      - 5433:5432  # 宿主机端口:容器端口5433是为测试使用，在teslashow项目在docker中还是使用5432
+    # ports:
+      # - 5433:5432  # 宿主机端口:容器端口5433是为测试使用，在teslashow项目在docker中还是使用5432
     environment:
       - POSTGRES_USER=teslamate
       - POSTGRES_PASSWORD=password #insert your secure database password!
@@ -53,8 +53,8 @@ services:
       - ./mosquitto-data:/mosquitto/data
 
   teslashow:
-    build: .  # Build from local Dockerfile
-    # image: teslashow:latest  # Or use pre-built image
+    # build: .  # Build from local Dockerfile
+    image: shareven/teslashow:latest  # Or use pre-built image
     depends_on:
       - database
     ports:

@@ -33,7 +33,7 @@ TeslaShow 是一个专为 TeslaMate 用户设计的现代化行程数据可视�
 
 ### 行程列表页面
 - 展示所有历史行程的卡片式列表
-- 显示起终点、距离、时长、能耗等关键信息
+- 显示距离、时长、能耗等关键信息
 - 支持分页浏览和时间过滤
 
 <img src="img-show/drives.png" alt="行程列表页面" width="200">
@@ -122,8 +122,8 @@ services:
   database:
     image: postgres:17
     restart: always
-    ports:
-      - 5433:5432  # 宿主机端口:容器端口5433是为测试使用，在teslashow项目在docker中还是使用5432
+    # ports:
+      # - 5433:5432  # 宿主机端口:容器端口5433是为测试使用，在teslashow项目在docker中还是使用5432
     environment:
       - POSTGRES_USER=teslamate
       - POSTGRES_PASSWORD=password #insert your secure database password!
@@ -155,8 +155,8 @@ services:
       - ./mosquitto-data:/mosquitto/data
 
   teslashow:
-    build: .  # Build from local Dockerfile
-    # image: teslashow:latest  # Or use pre-built image
+    # build: .  # Build from local Dockerfile
+    image: shareven/teslashow:latest  # Or use pre-built image
     depends_on:
       - database
     ports:

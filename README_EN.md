@@ -33,7 +33,7 @@ TeslaShow is a modern trip data visualization system designed specifically for T
 
 ### Trip List Page
 - Card-style list displaying all historical trips
-- Shows origin/destination, distance, duration, energy consumption and other key information
+- Shows distance, duration, energy consumption and other key information
 - Supports pagination and time filtering
 
 <img src="img-show/drives.png" alt="Trip List Page" width="200">
@@ -122,8 +122,8 @@ services:
   database:
     image: postgres:17
     restart: always
-    ports:
-      - 5433:5432  # Host port:Container port 5433 is for testing, teslashow project in docker still uses 5432
+   #  ports:
+      # - 5433:5432  # Host port:Container port 5433 is for testing, teslashow project in docker still uses 5432
     environment:
       - POSTGRES_USER=teslamate
       - POSTGRES_PASSWORD=password #insert your secure database password!
@@ -156,7 +156,7 @@ services:
 
   teslashow:
     # build: .  # Build from local Dockerfile
-    image: shareven/teslashow:latest  # use your pre-built image
+    image: shareven/teslashow:latest  # Or use pre-built image
     depends_on:
       - database
     ports:
