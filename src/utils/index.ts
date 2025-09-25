@@ -130,7 +130,7 @@ export const formatEnergyConsumption = (whPerKm: number): string => {
 // 时间过滤选项
 export const timeFilterOptions: TimeFilter[] = [
   { label: '所有', value: 'all' },
-  { label: '今天', value: 'today', days: 0 },
+  { label: '今天', value: 'today', days: 1 },
   { label: '近2天', value: '2days', days: 2 },
   { label: '近3天', value: '3days', days: 3 },
   { label: '近7天', value: '7days', days: 7 },
@@ -160,20 +160,22 @@ export const getDateRange = (filter: TimeFilter, customStart?: string, customEnd
     };
   }
   
-  // 获取当前UTC时间
+  // 获取当前本地时间
   const now = new Date();
   let startDate: Date;
   
   // 确保days存在且为数字
   const days = filter.days ?? 0;
   
-  if (days === 0) {
+  if (days === 1) {
     // 今天：从今天00:00:00开始（UTC时间）
-    const utcNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
-    startDate = new Date(Date.UTC(utcNow.getUTCFullYear(), utcNow.getUTCMonth(), utcNow.getUTCDate()));
+    // 使用UTC方法确保时间计算正确
+    startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0));
   } else {
-    // 其他：从N天前开始（UTC时间）
-    startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+    // 其他：从(N-1)天前的00:00:00开始（UTC时间）
+    // 例如：近2天应该从昨天00:00:00开始，近3天应该从前天00:00:00开始
+    const targetDate = new Date(now.getTime() - ((days - 1) * 24 * 60 * 60 * 1000));
+    startDate = new Date(Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0));
   }
   
   return {
@@ -191,7 +193,7 @@ export const getRandomColor = (): string => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-// 百度地图坐标转换
+// 地图坐标转换
 export const convertToMapPoint = (lat: number, lng: number) => {
   return { lat, lng };
 };
