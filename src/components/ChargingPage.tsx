@@ -32,6 +32,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { ChargingProcess, TimeFilter as TimeFilterType } from '@/types';
 import { formatDateRange, timeFilterOptions, getDateRange } from '@/utils';
+import { getStoredTimeFilter, saveTimeFilter } from '@/utils/timeFilterMemory';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
 import TimeFilter from '@/components/TimeFilter';
 import dayjs from 'dayjs';
@@ -91,9 +92,9 @@ const ChargingPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   
-  // 时间过滤状态 - 默认选择近7天
-  const [selectedFilter, setSelectedFilter] = useState<TimeFilterType>(
-    timeFilterOptions.find(f => f.value === '7days') || timeFilterOptions[0]
+  // 时间过滤状态 - 使用共用存储的选项或默认选择近7天
+  const [selectedFilter, setSelectedFilter] = useState<TimeFilterType>(() => 
+    getStoredTimeFilter()
   );
   const [useCurrentTime, setUseCurrentTime] = useState(true);
   const [customStartDate, setCustomStartDate] = useState<dayjs.Dayjs | null>(null);
@@ -203,6 +204,8 @@ const ChargingPage: React.FC = () => {
   const handleFilterChange = (filter: TimeFilterType) => {
     setSelectedFilter(filter);
     setPage(1);
+    // 保存用户选择到共用的本地存储
+    saveTimeFilter(filter);
     
     // 如果选择自定义时间，设置默认值
     if (filter.value === 'custom') {
