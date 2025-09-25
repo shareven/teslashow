@@ -373,13 +373,11 @@ const DrivesPage: React.FC = () => {
         {/* 时间过滤器 */}
         <TimeFilter
           selectedFilter={selectedFilter}
-          useCurrentTime={useCurrentTime}
           customStartDate={customStartDate}
           customEndDate={customEndDate}
           customStartTime={customStartTime}
           customEndTime={customEndTime}
           onFilterChange={handleFilterChange}
-          onUseCurrentTimeChange={setUseCurrentTime}
           onCustomStartDateChange={handleStartDateChange}
           onCustomEndDateChange={handleEndDateChange}
           onCustomStartTimeChange={(time) => {
@@ -402,8 +400,6 @@ const DrivesPage: React.FC = () => {
               }, 100);
             }
           }}
-          variant="collapsible"
-          title="筛选条件"
           loading={loading}
         />
       </Box>

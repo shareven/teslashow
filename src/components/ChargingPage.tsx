@@ -27,6 +27,7 @@ import {
   AccessTime,
   LocationOn,
   TrendingUp,
+  Refresh,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { ChargingProcess, TimeFilter as TimeFilterType } from '@/types';
@@ -103,33 +104,38 @@ const ChargingPage: React.FC = () => {
   // 日期验证函数
   const handleStartDateChange = (newDate: dayjs.Dayjs | null) => {
     setCustomStartDate(newDate);
+    // 如果开始时间为空，自动设置为00:00:00
     if (newDate && !customStartTime) {
       setCustomStartTime(dayjs().startOf('day'));
     }
+    // 如果开始日期晚于结束日期，自动调整结束日期
     if (newDate && customEndDate && newDate.isAfter(customEndDate, 'day')) {
       setCustomEndDate(newDate);
+      // 自动设置结束时间为23:59:59
       setCustomEndTime(dayjs().endOf('day'));
     }
+    // 如果有结束日期，自动更新数据
     if (customEndDate) {
       setTimeout(() => {
         setPage(1);
-        fetchChargingSessions(1);
       }, 100);
     }
   };
 
   const handleEndDateChange = (newDate: dayjs.Dayjs | null) => {
+    // 如果结束日期早于开始日期，不允许设置
     if (newDate && customStartDate && newDate.isBefore(customStartDate, 'day')) {
       return;
     }
     setCustomEndDate(newDate);
+    // 如果结束时间为空，自动设置为23:59:59
     if (newDate && !customEndTime) {
       setCustomEndTime(dayjs().endOf('day'));
     }
+    // 如果有开始日期，自动更新数据
     if (customStartDate) {
       setTimeout(() => {
         setPage(1);
-        fetchChargingSessions(1);
       }, 100);
     }
   };
@@ -197,13 +203,29 @@ const ChargingPage: React.FC = () => {
   const handleFilterChange = (filter: TimeFilterType) => {
     setSelectedFilter(filter);
     setPage(1);
-    fetchChargingSessions(1);
+    
+    // 如果选择自定义时间，设置默认值
+    if (filter.value === 'custom') {
+      // 如果没有设置时间，自动设置默认时间
+      if (!customStartTime) {
+        setCustomStartTime(dayjs().startOf('day')); // 00:00:00
+      }
+      if (!customEndTime) {
+        setCustomEndTime(dayjs().endOf('day')); // 23:59:59
+      }
+      // 如果没有设置日期，自动设置为当天
+      if (!customStartDate) {
+        setCustomStartDate(dayjs());
+      }
+      if (!customEndDate) {
+        setCustomEndDate(dayjs());
+      }
+    }
   };
 
   const handleUseCurrentTimeChange = (useCurrentTime: boolean) => {
     setUseCurrentTime(useCurrentTime);
     setPage(1);
-    fetchChargingSessions(1);
   };
 
   // 处理分页变化
@@ -217,172 +239,353 @@ const ChargingPage: React.FC = () => {
     router.push(`/charging/${chargingId}`);
   };
 
-  // 初始化数据
   useEffect(() => {
-    fetchChargingSessions(1);
-  }, []);
+    fetchChargingSessions(page);
+  }, [page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
 
   // 渲染充电记录卡片
-  const renderChargingCard = (charging: ChargingProcess) => {
-    const startTime = dayjs(charging.start_date).add(8, 'hour');
-    const endTime = dayjs(charging.end_date).add(8, 'hour');
+  const renderChargingCard = (charging: ChargingProcess, index: number) => {
+    const startTime = dayjs(charging.start_date);
+    const endTime = dayjs(charging.end_date);
     const batteryGain = safeNumber(charging.end_battery_level) - safeNumber(charging.start_battery_level);
     // 计算平均充电功率 (kW) = 充电能量 (kWh) / 充电时长 (小时)
     const avgPower = safeNumber(charging.duration_min) > 0 ? (safeNumber(charging.charge_energy_added) / (safeNumber(charging.duration_min) / 60)) : 0;
     
     return (
-      <Card
+      <Paper
         key={charging.id}
         sx={{
-          mb: 2,
+          p: 0,
+          borderRadius: 3,
+          overflow: 'hidden',
           cursor: 'pointer',
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: theme.shadows[4],
-          },
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           border: '1px solid',
           borderColor: 'divider',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
+            borderColor: 'primary.main',
+          },
+          '&:active': {
+            transform: 'translateY(-2px)',
+          },
         }}
+        className="card-hover touch-target"
         onClick={() => handleChargingClick(charging.id)}
       >
-        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-          {/* 头部信息 */}
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-            <Box display="flex" alignItems="center" gap={1}>
-              <Avatar
+        {/* 卡片头部 */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${currentTheme.primary} 0%, ${currentTheme.secondary} 100%)`,
+            p: { xs: 2, sm: 2.5 },
+            color: 'white',
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={{ xs: 1.5, sm: 2 }}>
+            <Avatar
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                width: { xs: 40, sm: 48 },
+                height: { xs: 40, sm: 48 },
+              }}
+            >
+              <BatteryChargingFull sx={{ fontSize: { xs: 20, sm: 24 } }} />
+            </Avatar>
+            <Stack flex={1} spacing={0.5}>
+              <Typography
+                variant="h6"
                 sx={{
-                  bgcolor: `${currentTheme}.main`,
-                  width: 40,
-                  height: 40,
+                  fontWeight: 700,
+                  fontSize: { xs: '0.875rem', sm: '1.125rem' },
+                  lineHeight: 1.2,
                 }}
               >
-                <BatteryChargingFull />
-              </Avatar>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  充电记录 #{charging.id}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {charging.car_name || charging.car_model || '未知车辆'}
-                </Typography>
-              </Box>
-            </Box>
-            <Chip
+                {startTime.format('YYYY-MM-DD HH:mm')} - {endTime.format('HH:mm')}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  opacity: 0.9,
+                  fontSize: { xs: '0.625rem', sm: '0.875rem' },
+                }}
+              >
+                充电记录 #{charging.id} · {charging.car_name || charging.car_model || '未知车辆'}
+              </Typography>
+            </Stack>
+            <Chip 
               label={`+${formatBatteryLevel(batteryGain)}`}
-              color="success"
-              size="small"
-              sx={{ fontWeight: 600 }}
+              sx={{ 
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                height: { xs: 28, sm: 32 },
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                '& .MuiChip-label': {
+                  px: { xs: 1, sm: 1.5 },
+                },
+              }}
             />
-          </Box>
+          </Stack>
+        </Box>
 
-          {/* 时间信息 */}
-          <Box display="flex" alignItems="center" gap={1} mb={2}>
-            <Schedule sx={{ fontSize: 16, color: 'text.secondary' }} />
-            <Typography variant="body2" color="text.secondary">
-              {startTime.format('YYYY-MM-DD HH:mm')} - {endTime.format('HH:mm')}
-            </Typography>
-            <Chip
-              label={formatDuration(safeNumber(charging.duration_min))}
-              size="small"
-              variant="outlined"
-            />
-          </Box>
-
-          {/* 地址信息 */}
-          {charging.address && (
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <LocationOn sx={{ fontSize: 16, color: 'text.secondary' }} />
-              <Typography variant="body2" color="text.secondary" noWrap>
-                {charging.address}
-              </Typography>
-            </Box>
-          )}
-
-          <Divider sx={{ my: 2 }} />
-
-          {/* 充电数据 */}
-          <Box
-            display="grid"
-            gridTemplateColumns={{ xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }}
-            gap={2}
-          >
-            <Box textAlign="center">
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                起始电量
-              </Typography>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
-                <Battery90 sx={{ fontSize: 16, color: 'text.secondary' }} />
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {formatBatteryLevel(charging.start_battery_level)}
+        {/* 卡片内容 */}
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Stack spacing={{ xs: 2, sm: 3 }}>
+            {/* 时间和地址信息 */}
+            <Stack spacing={1}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary">
+                  充电时长: {formatDuration(safeNumber(charging.duration_min))}
                 </Typography>
               </Box>
-            </Box>
+              {charging.address && (
+                <Box display="flex" alignItems="center" gap={1}>
+                  <LocationOn sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary" sx={{ 
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {charging.address}
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
 
-            <Box textAlign="center">
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                结束电量
-              </Typography>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
-                <Battery90 sx={{ fontSize: 16, color: 'success.main' }} />
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {formatBatteryLevel(charging.end_battery_level)}
-                </Typography>
+            {/* 统计信息网格 */}
+            <Box 
+              display="grid" 
+              gridTemplateColumns={{ xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }}
+              gap={{ xs: 1.5, sm: 2 }}
+            >
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                gap={{ xs: 1, sm: 1.5 }}
+                p={{ xs: 1.5, sm: 2 }}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: 'rgba(33, 150, 243, 0.05)',
+                  border: '1px solid rgba(33, 150, 243, 0.1)',
+                }}
+              >
+                <Avatar sx={{ 
+                  bgcolor: 'info.main', 
+                  width: { xs: 32, sm: 36 }, 
+                  height: { xs: 32, sm: 36 } 
+                }}>
+                  <Battery90 sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                </Avatar>
+                <Box>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    fontSize={{ xs: '0.625rem', sm: '0.75rem' }}
+                  >
+                    起始电量
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={700} 
+                    fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                    color="info.main"
+                  >
+                    {formatBatteryLevel(charging.start_battery_level)}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                gap={{ xs: 1, sm: 1.5 }}
+                p={{ xs: 1.5, sm: 2 }}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: 'rgba(76, 175, 80, 0.05)',
+                  border: '1px solid rgba(76, 175, 80, 0.1)',
+                }}
+              >
+                <Avatar sx={{ 
+                  bgcolor: 'success.main', 
+                  width: { xs: 32, sm: 36 }, 
+                  height: { xs: 32, sm: 36 } 
+                }}>
+                  <Battery90 sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                </Avatar>
+                <Box>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    fontSize={{ xs: '0.625rem', sm: '0.75rem' }}
+                  >
+                    结束电量
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={700} 
+                    fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                    color="success.main"
+                  >
+                    {formatBatteryLevel(charging.end_battery_level)}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                gap={{ xs: 1, sm: 1.5 }}
+                p={{ xs: 1.5, sm: 2 }}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: 'rgba(255, 152, 0, 0.05)',
+                  border: '1px solid rgba(255, 152, 0, 0.1)',
+                }}
+              >
+                <Avatar sx={{ 
+                  bgcolor: 'warning.main', 
+                  width: { xs: 32, sm: 36 }, 
+                  height: { xs: 32, sm: 36 } 
+                }}>
+                  <ElectricBolt sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                </Avatar>
+                <Box>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    fontSize={{ xs: '0.625rem', sm: '0.75rem' }}
+                  >
+                    充电能量
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={700} 
+                    fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                    color="warning.main"
+                  >
+                    {formatEnergy(safeNumber(charging.charge_energy_added))}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                gap={{ xs: 1, sm: 1.5 }}
+                p={{ xs: 1.5, sm: 2 }}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: 'rgba(156, 39, 176, 0.05)',
+                  border: '1px solid rgba(156, 39, 176, 0.1)',
+                }}
+              >
+                <Avatar sx={{ 
+                  bgcolor: 'secondary.main', 
+                  width: { xs: 32, sm: 36 }, 
+                  height: { xs: 32, sm: 36 } 
+                }}>
+                  <TrendingUp sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                </Avatar>
+                <Box>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    fontSize={{ xs: '0.625rem', sm: '0.75rem' }}
+                  >
+                    充电功率
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={700} 
+                    fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                    color="secondary.main"
+                  >
+                    {formatPower(avgPower)}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
-
-            <Box textAlign="center">
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                充电能量
-              </Typography>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
-                <ElectricBolt sx={{ fontSize: 16, color: 'warning.main' }} />
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {formatEnergy(safeNumber(charging.charge_energy_added))}
-                </Typography>
-              </Box>
-            </Box>
-
-            <Box textAlign="center">
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                充电功率
-              </Typography>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={0.5}>
-                <TrendingUp sx={{ fontSize: 16, color: 'info.main' }} />
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {formatPower(avgPower)}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+          </Stack>
+        </Box>
+      </Paper>
     );
   };
 
   return (
-    <Box>
+    <Container 
+      maxWidth="md" 
+      sx={{ 
+        px: { xs: 1, sm: 2, md: 3 },
+        py: { xs: 1, sm: 2 },
+        minHeight: '100vh',
+      }}
+    >
+      {/* 头部区域 */}
+      <Box mb={{ xs: 2, sm: 3 }}>
+        <Box display="flex" alignItems="center" gap={2} mb={2}>
+          <Avatar 
+            sx={{ 
+              bgcolor: 'primary.main',
+              width: { xs: 40, sm: 48 },
+              height: { xs: 40, sm: 48 },
+            }}
+          >
+            <BatteryChargingFull sx={{ fontSize: { xs: 20, sm: 24 } }} />
+          </Avatar>
+          <Box>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              sx={{ 
+                fontWeight: 800,
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.25rem' },
+                background: `linear-gradient(135deg, ${currentTheme.primary} 0%, ${currentTheme.secondary} 100%)`,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                lineHeight: 1.2,
+              }}
+            >
+              Tesla 充电记录
+            </Typography>
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ 
+                mt: 0.5,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              }}
+            >
+              共 {totalCount} 条记录 · 追踪您的每一次充电体验
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box>
       {/* 时间过滤器 */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <TimeFilter
-          selectedFilter={selectedFilter}
-          customStartDate={customStartDate}
-          customEndDate={customEndDate}
-          customStartTime={customStartTime}
-          customEndTime={customEndTime}
-          onFilterChange={handleFilterChange}
-          onCustomStartDateChange={handleStartDateChange}
-          onCustomEndDateChange={handleEndDateChange}
-          onCustomStartTimeChange={setCustomStartTime}
-          onCustomEndTimeChange={setCustomEndTime}
-        />
-      </Paper>
+      <TimeFilter
+        selectedFilter={selectedFilter}
+        customStartDate={customStartDate}
+        customEndDate={customEndDate}
+        customStartTime={customStartTime}
+        customEndTime={customEndTime}
+        onFilterChange={handleFilterChange}
+        onCustomStartDateChange={handleStartDateChange}
+        onCustomEndDateChange={handleEndDateChange}
+        onCustomStartTimeChange={setCustomStartTime}
+        onCustomEndTimeChange={setCustomEndTime}
+      />
 
       {/* 统计信息 */}
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          充电统计
-        </Typography>
         <Box
           display="grid"
           gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr 1fr' }}
@@ -436,11 +639,13 @@ const ChargingPage: React.FC = () => {
         </Paper>
       ) : (
         <>
-          {chargingSessions.map(renderChargingCard)}
+          <Stack spacing={{ xs: 2, sm: 3 }}>
+            {chargingSessions.map((charging, index) => renderChargingCard(charging, index))}
+          </Stack>
           
           {/* 分页 */}
           {totalPages > 1 && (
-            <Box display="flex" justifyContent="center" mt={3}>
+            <Box display="flex" justifyContent="center" mt={4}>
               <Pagination
                 count={totalPages}
                 page={page}
@@ -452,7 +657,8 @@ const ChargingPage: React.FC = () => {
           )}
         </>
       )}
-    </Box>
+      </Box>
+    </Container>
   );
 };
 

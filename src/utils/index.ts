@@ -168,14 +168,14 @@ export const getDateRange = (filter: TimeFilter, customStart?: string, customEnd
   const days = filter.days ?? 0;
   
   if (days === 1) {
-    // 今天：从今天00:00:00开始（UTC时间）
-    // 使用UTC方法确保时间计算正确
-    startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0));
+    // 今天：从今天本地时间00:00:00开始
+    // 创建本地时间的午夜，然后转换为UTC
+    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
   } else {
-    // 其他：从(N-1)天前的00:00:00开始（UTC时间）
+    // 其他：从(N-1)天前的本地时间00:00:00开始
     // 例如：近2天应该从昨天00:00:00开始，近3天应该从前天00:00:00开始
     const targetDate = new Date(now.getTime() - ((days - 1) * 24 * 60 * 60 * 1000));
-    startDate = new Date(Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0));
+    startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
   }
   
   return {

@@ -16,6 +16,8 @@ import {
   Grid,
   useTheme,
   useMediaQuery,
+  Container,
+  Button,
 } from '@mui/material';
 import {
   BatteryChargingFull,
@@ -23,9 +25,11 @@ import {
   Speed,
   Battery90,
   Timeline,
+  ArrowBack,
 } from '@mui/icons-material';
 import { ChargingProcess, ChargingData } from '@/types';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
+import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import 'dayjs/locale/zh-cn';
@@ -67,9 +71,12 @@ interface DataSeries {
   unit: string;
   visible: boolean;
   yAxisId?: string;
+  min?: number;
+  max?: number;
 }
 
 const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
+  const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { currentTheme } = useThemeColor();
@@ -87,7 +94,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
       color: '#2196F3', // 蓝色
       unit: 'V',
       visible: true,
-      yAxisId: 'voltage',
+      yAxisId: 'left1', // 左侧Y轴1 - 电压范围 190-250V
     },
     {
       key: 'charger_actual_current',
@@ -95,7 +102,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
       color: '#E91E63', // 粉红色
       unit: 'A',
       visible: true,
-      yAxisId: 'current',
+      yAxisId: 'right1', // 右侧Y轴1 - 电流范围 0-20A
     },
     {
       key: 'charger_power',
@@ -103,7 +110,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
       color: '#4CAF50', // 绿色
       unit: 'kW',
       visible: true,
-      yAxisId: 'power',
+      yAxisId: 'right2', // 右侧Y轴2 - 功率范围 0-5kW
     },
     {
       key: 'battery_level',
@@ -111,15 +118,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
       color: '#9C27B0', // 紫色
       unit: '%',
       visible: true,
-      yAxisId: 'soc',
-    },
-    {
-      key: 'ideal_battery_range_km',
-      label: '续航里程',
-      color: '#FF5722', // 深橙红色
-      unit: 'km',
-      visible: true,
-      yAxisId: 'range',
+      yAxisId: 'left2', // 左侧Y轴2 - SOC范围 0-100%
     },
   ]);
 
@@ -165,6 +164,11 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
     loadData();
   }, [chargingId]);
 
+  // 当充电数据更新时，更新数据系列的最小值和最大值
+  useEffect(() => {
+    updateDataSeriesMinMax();
+  }, [chargingData]);
+
   // 切换数据系列可见性
   const toggleSeriesVisibility = (key: string) => {
     setDataSeries(prev => 
@@ -176,11 +180,98 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
     );
   };
 
+  // 更新数据系列的最小值和最大值
+  const updateDataSeriesMinMax = () => {
+    if (chargingData.length === 0) return;
+
+    setDataSeries(prev => prev.map(series => {
+      let min = Infinity;
+      let max = -Infinity;
+
+      // 对于电流和功率，排除第一个和最后一个数据点
+      const shouldExcludeFirstLast = series.key === 'charger_actual_current' || series.key === 'charger_power';
+      const dataToProcess = shouldExcludeFirstLast && chargingData.length > 2 
+        ? chargingData.slice(1, -1) 
+        : chargingData;
+
+      dataToProcess.forEach(item => {
+        const value = item[series.key as keyof ChargingData];
+        if (value != null && typeof value === 'number') {
+          min = Math.min(min, value);
+          max = Math.max(max, value);
+        }
+      });
+
+      // 如果没有有效数据，保持原值
+      if (min === Infinity || max === -Infinity) {
+        return series;
+      }
+
+      return {
+        ...series,
+        min: Number(min.toFixed(2)),
+        max: Number(max.toFixed(2))
+      };
+    }));
+  };
+
+  // 计算数据范围，用于设置Y轴domain
+  const calculateDataRanges = () => {
+    if (chargingData.length === 0) return {};
+    
+    const ranges = {
+      voltage: { min: Infinity, max: -Infinity },
+      current: { min: Infinity, max: -Infinity },
+      power: { min: Infinity, max: -Infinity },
+      soc: { min: Infinity, max: -Infinity },
+    };
+    
+    chargingData.forEach(item => {
+      // 电压
+      if (item.charger_voltage != null) {
+        ranges.voltage.min = Math.min(ranges.voltage.min, item.charger_voltage);
+        ranges.voltage.max = Math.max(ranges.voltage.max, item.charger_voltage);
+      }
+      // 电流
+      if (item.charger_actual_current != null) {
+        ranges.current.min = Math.min(ranges.current.min, item.charger_actual_current);
+        ranges.current.max = Math.max(ranges.current.max, item.charger_actual_current);
+      }
+      // 功率
+      if (item.charger_power != null) {
+        ranges.power.min = Math.min(ranges.power.min, item.charger_power);
+        ranges.power.max = Math.max(ranges.power.max, item.charger_power);
+      }
+      // SOC
+      if (item.battery_level != null) {
+        ranges.soc.min = Math.min(ranges.soc.min, item.battery_level);
+        ranges.soc.max = Math.max(ranges.soc.max, item.battery_level);
+      }
+    });
+    
+    // 添加适当的边距，避免线条贴边
+    const addMargin = (min: number, max: number, marginPercent: number = 0.1) => {
+      const range = max - min;
+      const margin = range * marginPercent;
+      return {
+        min: Math.max(0, min - margin), // 确保最小值不小于0
+        max: max + margin
+      };
+    };
+    
+    return {
+      voltage: addMargin(ranges.voltage.min, ranges.voltage.max, 0.05),
+      current: addMargin(ranges.current.min, ranges.current.max, 0.1),
+      power: addMargin(ranges.power.min, ranges.power.max, 0.1),
+      soc: addMargin(ranges.soc.min, ranges.soc.max, 0.05),
+    };
+  };
+
   // 格式化图表数据
   const formatChartData = () => {
     const formattedData = chargingData.map((item, index) => {
-      // 将UTC时间加8小时转换为本地时间显示
-      const dateObj = dayjs(item.date).add(8, 'hour');
+      // 使用本地时间显示
+      const dateObj = dayjs(item.date);
       
       return {
         ...item,
@@ -218,7 +309,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                 variant="body2"
                 sx={{ color: entry.color }}
               >
-                {series.label}: {safeToFixed(entry.value, 2)} {series.unit}
+                {series.label}: {safeToFixed(entry.value, 0)} {series.unit}
               </Typography>
             );
           })}
@@ -252,23 +343,77 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
     );
   }
 
-  const startTime = dayjs(chargingProcess.start_date).add(8, 'hour');
-  const endTime = dayjs(chargingProcess.end_date).add(8, 'hour');
+  const startTime = dayjs(chargingProcess.start_date);
+  const endTime = dayjs(chargingProcess.end_date);
   const batteryGain = safeNumber(chargingProcess.end_battery_level) - safeNumber(chargingProcess.start_battery_level);
   const chartData = formatChartData();
 
   return (
     <Box>
+      <Button
+        startIcon={<ArrowBack />}
+        onClick={() => router.push('/charging')}
+        sx={{ 
+          mb: { xs: 2, sm: 3 },
+          borderRadius: 2,
+          px: { xs: 2, sm: 3 },
+          py: { xs: 1, sm: 1.5 },
+          fontSize: { xs: '0.875rem', sm: '1rem' },
+        }}
+        variant="outlined"
+        className="touch-target"
+      >
+        返回充电列表
+      </Button>
+
+      <Typography 
+        variant="h4" 
+        component="h1" 
+        gutterBottom 
+        sx={{ 
+          fontWeight: 600, 
+          color: 'primary.main',
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+          mb: { xs: 2, sm: 3 },
+        }}
+      >
+        充电详情 #{chargingProcess.id}
+      </Typography>
+
       {/* 充电基本信息 */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
+      <Card 
+        sx={{ 
+          mb: 3,
+          borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          border: '1px solid rgba(0,0,0,0.05)',
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Box display="flex" alignItems="center" gap={2} mb={3}>
-            <BatteryChargingFull sx={{ fontSize: 32, color: `${currentTheme}.main` }} />
+            <BatteryChargingFull 
+              sx={{ 
+                fontSize: { xs: 28, sm: 32 }, 
+                color: 'primary.main' 
+              }} 
+            />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                充电记录 #{chargingProcess.id}
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600,
+                  fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                  mb: { xs: 0.5, sm: 1 },
+                }}
+              >
+                基本信息
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+              >
                 {chargingProcess.car_name || chargingProcess.car_model || '未知车辆'}
               </Typography>
             </Box>
@@ -421,23 +566,94 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
 
 
 
-      {/* 数据系列控制 */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Timeline />
+      {/* 数据显示控制 */}
+      <Card 
+        sx={{ 
+          mb: 3,
+          borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          border: '1px solid rgba(0,0,0,0.05)',
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              fontWeight: 600,
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              mb: { xs: 1.5, sm: 2 },
+            }}
+          >
+            <Timeline color="primary" />
             数据显示控制
           </Typography>
           {isMobile ? (
             <Grid container spacing={1}>
               {dataSeries.map((series) => (
                 <Grid size={{ xs: 6 }} key={series.key}>
+                  <Box>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={series.visible}
+                          onChange={() => toggleSeriesVisibility(series.key)}
+                          size="small"
+                          sx={{
+                            '& .MuiSwitch-switchBase.Mui-checked': {
+                              color: series.color,
+                            },
+                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                              backgroundColor: series.color,
+                            },
+                          }}
+                        />
+                      }
+                      label={
+                        <Chip
+                          label={series.label}
+                          size="small"
+                          sx={{
+                            backgroundColor: series.visible ? series.color : 'grey.300',
+                            color: series.visible ? 'white' : 'grey.600',
+                            fontWeight: 500,
+                            fontSize: '0.7rem',
+                          }}
+                        />
+                      }
+                      sx={{ margin: 0 }}
+                    />
+                    {series.min !== undefined && series.max !== undefined && (
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          display: 'block', 
+                          color: 'text.secondary', 
+                          fontSize: '0.65rem',
+                          mt: 0.5,
+                          textAlign: 'center'
+                        }}
+                      >
+                        {series.min}{series.unit} - {series.max}{series.unit}
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <FormGroup row>
+              {dataSeries.map((series) => (
+                <Box key={series.key} sx={{ mr: 2, mb: 1 }}>
                   <FormControlLabel
                     control={
                       <Switch
                         checked={series.visible}
                         onChange={() => toggleSeriesVisibility(series.key)}
-                        size="small"
                         sx={{
                           '& .MuiSwitch-switchBase.Mui-checked': {
                             color: series.color,
@@ -450,52 +666,32 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                     }
                     label={
                       <Chip
-                        label={series.label}
+                        label={`${series.label} (${series.unit})`}
                         size="small"
                         sx={{
                           backgroundColor: series.visible ? series.color : 'grey.300',
                           color: series.visible ? 'white' : 'grey.600',
                           fontWeight: 500,
-                          fontSize: '0.7rem',
                         }}
                       />
                     }
                     sx={{ margin: 0 }}
                   />
-                </Grid>
-              ))}
-            </Grid>
-          ) : (
-            <FormGroup row>
-              {dataSeries.map((series) => (
-                <FormControlLabel
-                  key={series.key}
-                  control={
-                    <Switch
-                      checked={series.visible}
-                      onChange={() => toggleSeriesVisibility(series.key)}
-                      sx={{
-                        '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: series.color,
-                        },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: series.color,
-                        },
+                  {series.min !== undefined && series.max !== undefined && (
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        display: 'block', 
+                        color: 'text.secondary', 
+                        fontSize: '0.7rem',
+                        mt: 0.5,
+                        textAlign: 'center'
                       }}
-                    />
-                  }
-                  label={
-                    <Chip
-                      label={`${series.label} (${series.unit})`}
-                      size="small"
-                      sx={{
-                        backgroundColor: series.visible ? series.color : 'grey.300',
-                        color: series.visible ? 'white' : 'grey.600',
-                        fontWeight: 500,
-                      }}
-                    />
-                  }
-                />
+                    >
+                      {series.min}{series.unit} - {series.max}{series.unit}
+                    </Typography>
+                  )}
+                </Box>
               ))}
             </FormGroup>
           )}
@@ -503,11 +699,29 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
       </Card>
 
       {/* 充电曲线图 */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Speed />
-            充电数据曲线
+      <Card
+        sx={{
+          borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          border: '1px solid rgba(0,0,0,0.05)',
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              fontWeight: 600,
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              mb: { xs: 1.5, sm: 2 },
+            }}
+          >
+            <Speed color="primary" />
+            充电曲线
           </Typography>
           
           {chartData.length === 0 ? (
@@ -543,15 +757,70 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                     tick={{ fontSize: isMobile ? 10 : 12 }}
                   />
                   
-                  {/* 动态Y轴 - 隐藏显示 */}
-                  {dataSeries.filter(s => s.visible).map((series, index) => (
-                    <YAxis
-                      key={series.yAxisId}
-                      yAxisId={series.yAxisId}
-                      orientation={index % 2 === 0 ? 'left' : 'right'}
-                      hide={true}
-                    />
-                  ))}
+                  {/* 动态Y轴配置 */}
+                  {(() => {
+                    const dataRanges = calculateDataRanges();
+                    const visibleSeries = dataSeries.filter(s => s.visible);
+                    const yAxisConfigs: React.ReactElement[] = [];
+                    
+                    // 为每个可见的数据系列创建Y轴配置
+                    visibleSeries.forEach((series) => {
+                      if (!series.yAxisId) return;
+                      
+                      let domain: [number, number] | undefined, tickCount: number, label: string;
+                      
+                      switch (series.key) {
+                        case 'charger_voltage':
+                          domain = dataRanges.voltage ? [dataRanges.voltage.min, dataRanges.voltage.max] : undefined;
+                          tickCount = 5;
+                          label = '电压 (V)';
+                          break;
+                        case 'charger_actual_current':
+                          domain = dataRanges.current ? [dataRanges.current.min, dataRanges.current.max] : undefined;
+                          tickCount = 5;
+                          label = '电流 (A)';
+                          break;
+                        case 'charger_power':
+                          domain = dataRanges.power ? [dataRanges.power.min, dataRanges.power.max] : undefined;
+                          tickCount = 4;
+                          label = '功率 (kW)';
+                          break;
+                        case 'battery_level':
+                          domain = dataRanges.soc ? [dataRanges.soc.min, dataRanges.soc.max] : undefined;
+                          tickCount = 5;
+                          label = 'SOC (%)';
+                          break;
+                        default:
+                          domain = undefined;
+                          tickCount = 5;
+                          label = series.label;
+                      }
+                      
+                      yAxisConfigs.push(
+                        <YAxis
+                          key={series.yAxisId}
+                          yAxisId={series.yAxisId}
+                          orientation={series.yAxisId.startsWith('left') ? 'left' : 'right'}
+                          domain={domain}
+                          tickCount={tickCount}
+                          stroke={series.color}
+                          fontSize={isMobile ? 10 : 12}
+                          width={isMobile ? 35 : 45}
+                          hide={true}
+                          label={!isMobile ? { 
+                            value: label, 
+                            angle: series.yAxisId.startsWith('left') ? -90 : 90, 
+                            position: series.yAxisId.startsWith('left') ? 'insideLeft' : 'insideRight',
+                            style: { textAnchor: 'middle', fill: series.color, fontSize: '12px' }
+                          } : undefined}
+                          tick={{ fontSize: isMobile ? 9 : 11, fill: series.color }}
+                          tickFormatter={(value) => Math.round(value).toString()}
+                        />
+                      );
+                    });
+                    
+                    return yAxisConfigs;
+                  })()}
                   
                   <Tooltip content={<CustomTooltip />} />
                   {!isMobile && <Legend />}

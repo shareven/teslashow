@@ -21,8 +21,8 @@ export async function GET(
     const query = `
       SELECT 
         cp.id,
-        cp.start_date,
-        cp.end_date,
+        cp.start_date AT TIME ZONE 'UTC' as start_date,
+        cp.end_date AT TIME ZONE 'UTC' as end_date,
         cp.charge_energy_added,
         cp.charge_energy_used,
         cp.duration_min,

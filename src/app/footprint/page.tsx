@@ -13,9 +13,10 @@ import {
   CircularProgress,
   Alert,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Avatar
 } from '@mui/material';
-import { DirectionsCar, BatteryChargingFull, ElectricBolt, Schedule, TrendingUp } from '@mui/icons-material';
+import { DirectionsCar, BatteryChargingFull, ElectricBolt, Schedule, TrendingUp, LocationOn } from '@mui/icons-material';
 import AmapMap from '@/components/AmapMap';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -140,49 +141,56 @@ const FootprintPage: React.FC = () => {
   } : { lat: 39.916, lng: 116.397 };
 
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 3 } }}>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
-          sx={{ 
-            fontWeight: 600, 
-            color: 'primary.main',
-            fontSize: { xs: '1.75rem', sm: '2.125rem' },
-            mb: { xs: 1, sm: 2 },
-          }}
-        >
-          行程足迹
-        </Typography>
-        
-        <Typography 
-          variant="body1" 
-          color="text.secondary" 
-          sx={{ 
-            mb: { xs: 2, sm: 3 },
-            fontSize: { xs: '0.875rem', sm: '1rem' },
-          }}
-        >
-          查看Tesla的行程轨迹和统计数据
-        </Typography>
+    <Container maxWidth="md" sx={{ py: { xs: 2, sm: 3 } }}>
+        <Box display="flex" alignItems="center" gap={2} sx={{ mb: { xs: 2, sm: 3 } }}>
+          <Avatar
+            sx={{
+              bgcolor: 'primary.main',
+              width: { xs: 40, sm: 48 },
+              height: { xs: 40, sm: 48 },
+            }}
+          >
+            <LocationOn sx={{ fontSize: { xs: 20, sm: 24 } }} />
+          </Avatar>
+          <Box>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              sx={{ 
+                fontWeight: 600, 
+                color: 'primary.main',
+                fontSize: { xs: '1.75rem', sm: '2.125rem' },
+                lineHeight: 1.2,
+              }}
+            >
+              行程足迹
+            </Typography>
+            <Typography 
+              variant="body2" 
+              color="text.secondary" 
+              sx={{ 
+                mt: 0.5,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              }}
+            >
+              查看Tesla的行程轨迹和统计数据
+            </Typography>
+          </Box>
+        </Box>
 
         {/* 时间过滤器 */}
         <TimeFilter
           selectedFilter={selectedFilter}
-          useCurrentTime={useCurrentTime}
           customStartDate={customStartDate}
           customEndDate={customEndDate}
           customStartTime={customStartTime}
           customEndTime={customEndTime}
           onFilterChange={handleFilterChange}
-          onUseCurrentTimeChange={setUseCurrentTime}
           onCustomStartDateChange={setCustomStartDate}
           onCustomEndDateChange={setCustomEndDate}
           onCustomStartTimeChange={setCustomStartTime}
           onCustomEndTimeChange={setCustomEndTime}
           onCustomTimeSelected={fetchFootprintData}
-          variant="simple"
-          title="时间过滤"
           loading={loading}
         />
 
@@ -374,63 +382,7 @@ const FootprintPage: React.FC = () => {
                     </CardContent>
                   </Card>
 
-                  <Card
-                    sx={{
-                      borderRadius: 3,
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                      background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                      border: '1px solid rgba(0,0,0,0.05)',
-                    }}
-                  >
-                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                      <Typography 
-                        variant="h6" 
-                        gutterBottom 
-                        sx={{ 
-                          fontWeight: 600,
-                          fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                          mb: { xs: 1.5, sm: 2 },
-                        }}
-                      >
-                        充电统计
-                      </Typography>
-                      
-                      <Box 
-                        textAlign="center"
-                        sx={{
-                          p: { xs: 1.5, sm: 2 },
-                          borderRadius: 2,
-                          bgcolor: 'rgba(156, 39, 176, 0.05)',
-                          border: '1px solid rgba(156, 39, 176, 0.1)',
-                        }}
-                      >
-                        <ElectricBolt 
-                          color="secondary" 
-                          sx={{ 
-                            fontSize: { xs: 36, sm: 48 }, 
-                            mb: { xs: 1, sm: 2 } 
-                          }} 
-                        />
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-                        >
-                          总充电量
-                        </Typography>
-                        <Typography 
-                          variant="h4" 
-                          sx={{ 
-                            fontWeight: 600, 
-                            color: 'secondary.main',
-                            fontSize: { xs: '1.5rem', sm: '2.125rem' },
-                          }}
-                        >
-                          {Math.round(statistics.totalChargeEnergy)} kWh
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
+
 
 
                 </>

@@ -15,26 +15,8 @@ const ChargingDetailPage: React.FC<ChargingDetailPageProps> = ({ params }) => {
   const chargingId = parseInt(resolvedParams.id);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          sx={{ 
-            fontWeight: 700,
-            color: 'text.primary',
-            mb: 1,
-          }}
-        >
-          充电详情 #{chargingId}
-        </Typography>
-        <Typography 
-          variant="body1" 
-          color="text.secondary"
-        >
-          查看充电过程中的详细数据变化
-        </Typography>
-      </Box>
+    <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
+
       
       <ChargingDetail chargingId={chargingId} />
     </Container>
