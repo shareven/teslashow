@@ -8,7 +8,7 @@ WORKDIR /teslashow
 COPY package.json /teslashow/
 
 # 安装依赖
-RUN npm install
+RUN npm install --verbose
 
 # 复制源代码
 COPY . /teslashow/
