@@ -17,6 +17,7 @@ import {
 import { 
   Timeline,
   Place,
+  BatteryChargingFull,
 } from '@mui/icons-material';
 import TeslaShowLogo from './TeslaShowLogo';
 import { useRouter, usePathname } from 'next/navigation';
@@ -38,12 +39,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const getCurrentTab = () => {
     if (pathname.startsWith('/footprint')) return '/footprint';
+    if (pathname.startsWith('/charging')) return '/charging';
     return '/';
   };
 
   const navigationItems = [
     { label: '行程', value: '/', icon: <Timeline /> },
     { label: '足迹', value: '/footprint', icon: <Place /> },
+    { label: '充电', value: '/charging', icon: <BatteryChargingFull /> },
   ];
 
   return (

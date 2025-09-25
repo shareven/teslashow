@@ -134,7 +134,7 @@ const FootprintPage: React.FC = () => {
     opacity: 0.7,
   }] : [];
 
-  const mapCenter = positions.length > 0 ? {
+  const mapCenter = (positions && positions.length > 0) ? {
     lat: positions.reduce((sum, pos) => sum + safeNumber(pos.latitude), 0) / positions.length,
     lng: positions.reduce((sum, pos) => sum + safeNumber(pos.longitude), 0) / positions.length,
   } : { lat: 39.916, lng: 116.397 };
@@ -426,7 +426,7 @@ const FootprintPage: React.FC = () => {
                             fontSize: { xs: '1.5rem', sm: '2.125rem' },
                           }}
                         >
-                          {statistics.totalChargeEnergy.toFixed(1)} kWh
+                          {Math.round(statistics.totalChargeEnergy)} kWh
                         </Typography>
                       </Box>
                     </CardContent>

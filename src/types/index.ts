@@ -50,7 +50,32 @@ export interface ChargingProcess {
   start_battery_level: number;
   end_battery_level: number;
   duration_min: number;
+  outside_temp_avg?: number;
+  start_rated_range_km?: number;
+  end_rated_range_km?: number;
+  start_ideal_range_km?: number;
+  end_ideal_range_km?: number;
   car_id: number;
+  car_model?: string;
+  car_name?: string;
+  charger_power?: number;
+  cost?: number;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+// 充电详细数据类型（用于图表展示）
+export interface ChargingData {
+  id: number;
+  date: string;
+  battery_level: number;
+  charge_energy_added: number;
+  charger_actual_current: number;
+  charger_voltage: number;
+  charger_power: number;
+  ideal_battery_range_km: number;
+  charging_process_id: number;
 }
 
 // 车辆信息类型
