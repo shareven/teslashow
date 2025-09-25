@@ -29,6 +29,14 @@ export const getStoredTimeFilter = (): TimeFilter => {
 };
 
 /**
+ * 获取默认时间过滤选项（SSR安全）
+ * @returns 默认时间过滤选项（近7天）
+ */
+export const getDefaultTimeFilter = (): TimeFilter => {
+  return timeFilterOptions.find(f => f.value === '7days') || timeFilterOptions[0];
+};
+
+/**
  * 保存时间过滤选项到本地存储
  * @param filter 要保存的时间过滤选项
  */

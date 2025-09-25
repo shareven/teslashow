@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Layout from '@/components/Layout';
 import { ThemeColorProvider } from '@/lib/ThemeColorProvider';
 import './globals.css';
@@ -22,7 +22,11 @@ export const metadata: Metadata = {
       { url: '/apple-touch-icon.svg', sizes: '180x180', type: 'image/svg+xml' },
     ],
   },
-  viewport: 'width=device-width, initial-scale=1',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#1976d2',
 };
 

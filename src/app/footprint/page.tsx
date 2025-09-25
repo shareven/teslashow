@@ -34,7 +34,7 @@ import {
   timeFilterOptions,
   getDateRange,
 } from '@/utils';
-import { getStoredTimeFilter, saveTimeFilter } from '@/utils/timeFilterMemory';
+import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 
 const FootprintPage: React.FC = () => {
   const theme = useTheme();
@@ -45,9 +45,9 @@ const FootprintPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // 时间过滤状态 - 使用共用存储的选项或默认选择近7天
+  // 时间过滤状态 - 使用默认值初始化，避免hydration错误
   const [selectedFilter, setSelectedFilter] = useState<TimeFilterType>(() => 
-    getStoredTimeFilter()
+    getDefaultTimeFilter()
   );
   const [useCurrentTime, setUseCurrentTime] = useState(true);
   const [customStartDate, setCustomStartDate] = useState<dayjs.Dayjs | null>(null);
@@ -113,6 +113,12 @@ const FootprintPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // 在组件挂载后加载存储的时间过滤选项
+  useEffect(() => {
+    const storedFilter = getStoredTimeFilter();
+    setSelectedFilter(storedFilter);
+  }, []);
 
   useEffect(() => {
     fetchFootprintData();

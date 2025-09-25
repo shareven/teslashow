@@ -21,6 +21,7 @@ TeslaShow is a modern trip data visualization system designed specifically for T
 ### ✨ Key Features
 
 - 🚗 **Trip Management** - View detailed historical trip lists and individual trip details
+- 🔋 **Charging Management** - View charging history records and detailed charging session information
 - 🗺️ **Trajectory Visualization** - Trip trajectory display based on Amap
 - 📊 **Data Statistics** - Total mileage, driving time, energy consumption analysis and other statistical information
 - 🎨 **Modern UI** - Material Design 3 style with multiple theme color support
@@ -44,6 +45,16 @@ TeslaShow is a modern trip data visualization system designed specifically for T
 - Real-time data point information (speed, power, battery level, etc.)
 
 <img src="img-show/drive-detail.png" alt="Trip Details Page" width="200">
+
+### Charging List Page
+- Card-style list displaying all historical charging records
+- Shows charging time, energy added, charging power and other key information
+- Supports pagination and time filtering
+
+### Charging Details Page
+- Detailed charging session data display (time, battery level changes, energy, power, etc.)
+- Voltage, current, power, and SOC variation curves during charging process
+- Charging location information
 
 ### Footprint Analysis Page
 - Customizable time range trajectory aggregation display

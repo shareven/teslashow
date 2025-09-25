@@ -2,17 +2,12 @@
 
 import React from 'react';
 import { Container, Typography, Box } from '@mui/material';
+import { useParams } from 'next/navigation';
 import ChargingDetail from '@/components/ChargingDetail';
 
-interface ChargingDetailPageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
-
-const ChargingDetailPage: React.FC<ChargingDetailPageProps> = ({ params }) => {
-  const resolvedParams = React.use(params);
-  const chargingId = parseInt(resolvedParams.id);
+const ChargingDetailPage: React.FC = () => {
+  const params = useParams();
+  const chargingId = parseInt(params.id as string);
 
   return (
     <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>

@@ -32,7 +32,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Drive, TimeFilter as TimeFilterType } from '@/types';
 import { calculateEnergyConsumption, formatEnergyConsumption, formatDateRange, timeFilterOptions, getDateRange } from '@/utils';
-import { getStoredTimeFilter, saveTimeFilter } from '@/utils/timeFilterMemory';
+import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
 import TimeFilter from '@/components/TimeFilter';
 import dayjs from 'dayjs';
@@ -90,9 +90,9 @@ const DrivesPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   
-  // 时间过滤状态 - 使用共用存储的选项或默认选择近7天
+  // 时间过滤状态 - 使用默认值初始化，避免hydration错误
   const [selectedFilter, setSelectedFilter] = useState<TimeFilterType>(() => 
-    getStoredTimeFilter()
+    getDefaultTimeFilter()
   );
   const [useCurrentTime, setUseCurrentTime] = useState(true);
   const [customStartDate, setCustomStartDate] = useState<dayjs.Dayjs | null>(null);
@@ -202,6 +202,12 @@ const DrivesPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // 在组件挂载后加载存储的时间过滤选项
+  useEffect(() => {
+    const storedFilter = getStoredTimeFilter();
+    setSelectedFilter(storedFilter);
+  }, []);
 
   useEffect(() => {
     fetchDrives(page);

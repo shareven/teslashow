@@ -28,7 +28,7 @@ import {
   ArrowBack,
 } from '@mui/icons-material';
 import { ChargingProcess, ChargingData } from '@/types';
-import { useThemeColor } from '@/lib/ThemeColorProvider';
+
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -79,7 +79,6 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { currentTheme } = useThemeColor();
   
   const [chargingProcess, setChargingProcess] = useState<ChargingProcess | null>(null);
   const [chargingData, setChargingData] = useState<ChargingData[]>([]);
@@ -386,7 +385,6 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
           mb: 3,
           borderRadius: 3,
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
           border: '1px solid rgba(0,0,0,0.05)',
         }}
       >
@@ -572,7 +570,6 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
           mb: 3,
           borderRadius: 3,
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
           border: '1px solid rgba(0,0,0,0.05)',
         }}
       >
@@ -703,7 +700,6 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
         sx={{
           borderRadius: 3,
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
           border: '1px solid rgba(0,0,0,0.05)',
         }}
       >
