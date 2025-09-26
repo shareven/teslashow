@@ -21,8 +21,8 @@ export async function GET(
     // 首先获取充电过程的时间范围
     const processQuery = `
       SELECT 
-        start_date, 
-        end_date
+        start_date AT TIME ZONE 'UTC' as start_date, 
+        end_date AT TIME ZONE 'UTC' as end_date
       FROM charging_processes
       WHERE id = $1
     `;
@@ -41,7 +41,7 @@ export async function GET(
     // 获取充电过程中的详细数据
     const dataQuery = `
       SELECT 
-        date,
+        date AT TIME ZONE 'UTC' as date,
         battery_level,
         charge_energy_added,
         charger_power,
@@ -52,8 +52,8 @@ export async function GET(
         rated_battery_range_km
       FROM charges
       WHERE charging_process_id = $1
-        AND date >= $2
-        AND date <= $3
+        AND date AT TIME ZONE 'UTC' >= $2
+        AND date AT TIME ZONE 'UTC' <= $3
       ORDER BY date ASC
     `;
 

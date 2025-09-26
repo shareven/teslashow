@@ -5,50 +5,21 @@ import { calculateEnergyConsumption } from '@/utils';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const timeFilter = searchParams.get('timeFilter') || 'all';
-    const customStart = searchParams.get('customStart');
-    const customEnd = searchParams.get('customEnd');
+    const startDate = searchParams.get('start_date');
+    const endDate = searchParams.get('end_date');
 
     let whereClause = 'WHERE d.end_date IS NOT NULL';
     const queryParams: any[] = [];
 
     // 根据时间过滤条件构建查询
-    if (timeFilter !== 'all') {
-      if (timeFilter === 'custom' && customStart && customEnd) {
-        whereClause += ' AND d.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\' AND d.end_date AT TIME ZONE \'UTC\' <= $2::timestamp AT TIME ZONE \'UTC\'';
-        queryParams.push(customStart, customEnd);
-      } else {
-        // 预设时间过滤
-        const daysMap: { [key: string]: number } = {
-          'today': 0,
-          '2days': 2,
-          '3days': 3,
-          '7days': 7,
-          '30days': 30,
-          '90days': 90,
-          '365days': 365,
-        };
+    if (startDate) {
+      whereClause += ' AND d.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\'';
+      queryParams.push(startDate);
+    }
 
-        const days = daysMap[timeFilter];
-        if (days !== undefined) {
-          if (days === 0) {
-            // 今天：从今天00:00:00开始
-            const today = new Date();
-            today.setUTCHours(0, 0, 0, 0);
-            const startOfDay = today.toISOString();
-            whereClause += ' AND d.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\'';
-            queryParams.push(startOfDay);
-          } else {
-            // 其他天数：从N天前的00:00:00开始
-            const startDate = new Date();
-            startDate.setUTCDate(startDate.getUTCDate() - days);
-            startDate.setUTCHours(0, 0, 0, 0);
-            const startDateStr = startDate.toISOString();
-            whereClause += ' AND d.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\'';
-            queryParams.push(startDateStr);
-          }
-        }
-      }
+    if (endDate) {
+      whereClause += ` AND d.start_date AT TIME ZONE 'UTC' <= $${queryParams.length + 1}::timestamp AT TIME ZONE 'UTC'`;
+      queryParams.push(endDate);
     }
 
     // 获取统计数据，包含车型信息用于能耗计算
@@ -78,41 +49,14 @@ export async function GET(request: NextRequest) {
     let chargingParams: any[] = [];
     
     // 为充电数据添加相同的时间过滤
-    if (timeFilter !== 'all') {
-      if (timeFilter === 'custom' && customStart && customEnd) {
-        chargingQuery += ' AND cp.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\' AND cp.end_date AT TIME ZONE \'UTC\' <= $2::timestamp AT TIME ZONE \'UTC\'';
-        chargingParams = [customStart, customEnd];
-      } else {
-        const daysMap: { [key: string]: number } = {
-          'today': 0,
-          '2days': 2,
-          '3days': 3,
-          '7days': 7,
-          '30days': 30,
-          '90days': 90,
-          '365days': 365,
-        };
+    if (startDate) {
+      chargingQuery += ' AND cp.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\'';
+      chargingParams.push(startDate);
+    }
 
-        const days = daysMap[timeFilter];
-        if (days !== undefined) {
-          if (days === 0) {
-            // 今天：从今天00:00:00开始
-            const today = new Date();
-            today.setUTCHours(0, 0, 0, 0);
-            const startOfDay = today.toISOString();
-            chargingQuery += ' AND cp.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\'';
-            chargingParams = [startOfDay];
-          } else {
-            // 其他天数：从N天前的00:00:00开始
-            const startDate = new Date();
-            startDate.setUTCDate(startDate.getUTCDate() - days);
-            startDate.setUTCHours(0, 0, 0, 0);
-            const startDateStr = startDate.toISOString();
-            chargingQuery += ' AND cp.start_date AT TIME ZONE \'UTC\' >= $1::timestamp AT TIME ZONE \'UTC\'';
-            chargingParams = [startDateStr];
-          }
-        }
-      }
+    if (endDate) {
+      chargingQuery += ` AND cp.start_date AT TIME ZONE 'UTC' <= $${chargingParams.length + 1}::timestamp AT TIME ZONE 'UTC'`;
+      chargingParams.push(endDate);
     }
 
     // 获取轨迹数据（采样以提高性能）

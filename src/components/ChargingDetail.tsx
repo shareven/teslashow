@@ -268,23 +268,29 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
 
   // 格式化图表数据
   const formatChartData = () => {
-    const formattedData = chargingData.map((item, index) => {
-      // 使用本地时间显示
-      const dateObj = dayjs(item.date);
+    if (!chargingData || chargingData.length === 0) return [];
+    
+    return chargingData.map((item) => {
+      // 数据库中的时间是UTC，需要明确指定为UTC然后转换为本地时间
+      const localTime = dayjs.utc(item.date).local();
+      const timestamp = localTime.valueOf();
       
       return {
-        ...item,
-        timestamp: dateObj.valueOf(), // 使用时间戳作为X轴数据
-        timeDisplay: dateObj.format('MM-DD HH:mm:ss'), // 显示完整的月日时分秒
-        index,
+        timestamp,
+        battery_level: safeNumber(item.battery_level),
+        charge_energy_added: safeNumber(item.charge_energy_added),
+        charger_power: safeNumber(item.charger_power),
+        charger_voltage: safeNumber(item.charger_voltage),
+        charger_actual_current: safeNumber(item.charger_actual_current),
+        ideal_battery_range_km: safeNumber(item.ideal_battery_range_km),
+        timeDisplay: localTime.format('MM-DD HH:mm:ss'),
       };
     });
-    
-    return formattedData;
   };
 
   // 自定义时间格式化函数
   const formatXAxisTime = (timestamp: number) => {
+    // timestamp已经是本地时间的时间戳，直接使用dayjs处理
     return dayjs(timestamp).format('MM-DD HH:mm');
   };
 
@@ -342,10 +348,13 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
     );
   }
 
-  const startTime = dayjs(chargingProcess.start_date);
-  const endTime = dayjs(chargingProcess.end_date);
+  // 数据库中的时间是UTC，需要明确指定为UTC然后转换为本地时间
+  const startTime = dayjs.utc(chargingProcess.start_date).local();
+  const endTime = dayjs.utc(chargingProcess.end_date).local();
   const batteryGain = safeNumber(chargingProcess.end_battery_level) - safeNumber(chargingProcess.start_battery_level);
   const chartData = formatChartData();
+
+
 
   return (
     <Box>
@@ -378,6 +387,8 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
       >
         充电详情 #{chargingProcess.id}
       </Typography>
+
+
 
       {/* 充电基本信息 */}
       <Card 
@@ -564,138 +575,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
 
 
 
-      {/* 数据显示控制 */}
-      <Card 
-        sx={{ 
-          mb: 3,
-          borderRadius: 3,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(0,0,0,0.05)',
-        }}
-      >
-        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-          <Typography 
-            variant="h6" 
-            gutterBottom 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 1,
-              fontWeight: 600,
-              fontSize: { xs: '1.1rem', sm: '1.25rem' },
-              mb: { xs: 1.5, sm: 2 },
-            }}
-          >
-            <Timeline color="primary" />
-            数据显示控制
-          </Typography>
-          {isMobile ? (
-            <Grid container spacing={1}>
-              {dataSeries.map((series) => (
-                <Grid size={{ xs: 6 }} key={series.key}>
-                  <Box>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={series.visible}
-                          onChange={() => toggleSeriesVisibility(series.key)}
-                          size="small"
-                          sx={{
-                            '& .MuiSwitch-switchBase.Mui-checked': {
-                              color: series.color,
-                            },
-                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                              backgroundColor: series.color,
-                            },
-                          }}
-                        />
-                      }
-                      label={
-                        <Chip
-                          label={series.label}
-                          size="small"
-                          sx={{
-                            backgroundColor: series.visible ? series.color : 'grey.300',
-                            color: series.visible ? 'white' : 'grey.600',
-                            fontWeight: 500,
-                            fontSize: '0.7rem',
-                          }}
-                        />
-                      }
-                      sx={{ margin: 0 }}
-                    />
-                    {series.min !== undefined && series.max !== undefined && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          display: 'block', 
-                          color: 'text.secondary', 
-                          fontSize: '0.65rem',
-                          mt: 0.5,
-                          textAlign: 'center'
-                        }}
-                      >
-                        {series.min}{series.unit} - {series.max}{series.unit}
-                      </Typography>
-                    )}
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          ) : (
-            <FormGroup row>
-              {dataSeries.map((series) => (
-                <Box key={series.key} sx={{ mr: 2, mb: 1 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={series.visible}
-                        onChange={() => toggleSeriesVisibility(series.key)}
-                        sx={{
-                          '& .MuiSwitch-switchBase.Mui-checked': {
-                            color: series.color,
-                          },
-                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                            backgroundColor: series.color,
-                          },
-                        }}
-                      />
-                    }
-                    label={
-                      <Chip
-                        label={`${series.label} (${series.unit})`}
-                        size="small"
-                        sx={{
-                          backgroundColor: series.visible ? series.color : 'grey.300',
-                          color: series.visible ? 'white' : 'grey.600',
-                          fontWeight: 500,
-                        }}
-                      />
-                    }
-                    sx={{ margin: 0 }}
-                  />
-                  {series.min !== undefined && series.max !== undefined && (
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        display: 'block', 
-                        color: 'text.secondary', 
-                        fontSize: '0.7rem',
-                        mt: 0.5,
-                        textAlign: 'center'
-                      }}
-                    >
-                      {series.min}{series.unit} - {series.max}{series.unit}
-                    </Typography>
-                  )}
-                </Box>
-              ))}
-            </FormGroup>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 充电曲线图 */}
+      {/* 充电曲线 */}
       <Card
         sx={{
           borderRadius: 3,
@@ -719,6 +599,120 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
             <Speed color="primary" />
             充电曲线
           </Typography>
+
+          {/* 数据显示控制 */}
+          <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+            {isMobile ? (
+              <Grid container spacing={1}>
+                {dataSeries.map((series) => (
+                  <Grid size={{ xs: 6 }} key={series.key}>
+                    <Box 
+                      sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={series.visible}
+                            onChange={() => toggleSeriesVisibility(series.key)}
+                            size="small"
+                            sx={{
+                              '& .MuiSwitch-switchBase.Mui-checked': {
+                                color: series.color,
+                              },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                backgroundColor: series.color,
+                              },
+                            }}
+                          />
+                        }
+                        label={
+                          <Chip
+                            label={series.label}
+                            size="small"
+                            sx={{
+                              backgroundColor: series.visible ? series.color : 'grey.300',
+                              color: series.visible ? 'white' : 'grey.600',
+                              fontWeight: 500,
+                              fontSize: '0.7rem',
+                            }}
+                          />
+                        }
+                        sx={{ margin: 0 }}
+                      />
+                      {series.min !== undefined && series.max !== undefined && (
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            display: 'block', 
+                            color: 'text.secondary', 
+                            fontSize: '0.65rem',
+                            mt: 0.5,
+                            textAlign: 'center'
+                          }}
+                        >
+                          {series.min}{series.unit} - {series.max}{series.unit}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <FormGroup row>
+                {dataSeries.map((series) => (
+                  <Box key={series.key} sx={{ mr: 2, mb: 1 }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={series.visible}
+                          onChange={() => toggleSeriesVisibility(series.key)}
+                          sx={{
+                            '& .MuiSwitch-switchBase.Mui-checked': {
+                              color: series.color,
+                            },
+                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                              backgroundColor: series.color,
+                            },
+                          }}
+                        />
+                      }
+                      label={
+                        <Chip
+                          label={`${series.label} (${series.unit})`}
+                          size="small"
+                          sx={{
+                            backgroundColor: series.visible ? series.color : 'grey.300',
+                            color: series.visible ? 'white' : 'grey.600',
+                            fontWeight: 500,
+                          }}
+                        />
+                      }
+                      sx={{ margin: 0 }}
+                    />
+                    {series.min !== undefined && series.max !== undefined && (
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          display: 'block', 
+                          color: 'text.secondary', 
+                          fontSize: '0.7rem',
+                          mt: 0.5,
+                          textAlign: 'center'
+                        }}
+                      >
+                        {series.min}{series.unit} - {series.max}{series.unit}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </FormGroup>
+            )}
+          </Box>
           
           {chartData.length === 0 ? (
             <Box textAlign="center" py={4}>

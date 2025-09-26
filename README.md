@@ -51,10 +51,14 @@ TeslaShow 是一个专为 TeslaMate 用户设计的现代化行程数据可视�
 - 显示充电时间、充电量、充电功率等关键信息
 - 支持分页浏览和时间过滤
 
+<img src="img-show/charging.png" alt="充电列表页面" width="200">
+
 ### 充电详情页面
 - 详细的充电会话数据展示（时间、电量变化、能量、功率等）
 - 充电过程中的电压、电流、功率、SOC变化曲线
 - 充电地址信息
+
+<img src="img-show/charging-detail.png" alt="充电详情页面" width="200">
 
 ### 足迹分析页面
 - 可自定义时间范围的轨迹聚合显示

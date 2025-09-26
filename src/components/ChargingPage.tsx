@@ -101,6 +101,7 @@ const ChargingPage: React.FC = () => {
   const [customEndDate, setCustomEndDate] = useState<dayjs.Dayjs | null>(null);
   const [customStartTime, setCustomStartTime] = useState<dayjs.Dayjs | null>(null);
   const [customEndTime, setCustomEndTime] = useState<dayjs.Dayjs | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 日期验证函数
   const handleStartDateChange = (newDate: dayjs.Dayjs | null) => {
@@ -246,11 +247,14 @@ const ChargingPage: React.FC = () => {
   useEffect(() => {
     const storedFilter = getStoredTimeFilter();
     setSelectedFilter(storedFilter);
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
-    fetchChargingSessions(page);
-  }, [page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
+    if (isInitialized) {
+      fetchChargingSessions(page);
+    }
+  }, [isInitialized, page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
 
   // 渲染充电记录卡片
   const renderChargingCard = (charging: ChargingProcess, index: number) => {
@@ -261,27 +265,19 @@ const ChargingPage: React.FC = () => {
     const avgPower = safeNumber(charging.duration_min) > 0 ? (safeNumber(charging.charge_energy_added) / (safeNumber(charging.duration_min) / 60)) : 0;
     
     return (
-      <Paper
+      <Card
         key={charging.id}
         sx={{
-          p: 0,
           borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
           overflow: 'hidden',
           cursor: 'pointer',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          border: '1px solid',
-          borderColor: 'divider',
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
           '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
-            borderColor: 'primary.main',
-          },
-          '&:active': {
             transform: 'translateY(-2px)',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
           },
         }}
-        className="card-hover touch-target"
         onClick={() => handleChargingClick(charging.id)}
       >
         {/* 卡片头部 */}
@@ -523,7 +519,7 @@ const ChargingPage: React.FC = () => {
             </Box>
           </Stack>
         </Box>
-      </Paper>
+      </Card>
     );
   };
 
@@ -594,38 +590,48 @@ const ChargingPage: React.FC = () => {
       />
 
       {/* 统计信息 */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box
-          display="grid"
-          gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr 1fr' }}
-          gap={2}
-        >
-          <Box textAlign="center">
-            <Typography variant="h4" color="primary.main" sx={{ fontWeight: 700 }}>
-              {totalCount}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              充电次数
-            </Typography>
+      <Card
+        sx={{
+          borderRadius: 3,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          border: '1px solid rgba(0,0,0,0.05)',
+          mb: 3,
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr 1fr' }}
+            gap={2}
+          >
+            <Box textAlign="center">
+              <Typography variant="h4" color="primary.main" sx={{ fontWeight: 700 }}>
+                {totalCount}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                充电次数
+              </Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h4" color="success.main" sx={{ fontWeight: 700 }}>
+                {formatEnergy((chargingSessions || []).reduce((sum, c) => sum + safeNumber(c.charge_energy_added), 0))}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                总充电量
+              </Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h4" color="warning.main" sx={{ fontWeight: 700 }}>
+                {formatDuration((chargingSessions || []).reduce((sum, c) => sum + safeNumber(c.duration_min), 0))}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                总充电时长
+              </Typography>
+            </Box>
           </Box>
-          <Box textAlign="center">
-            <Typography variant="h4" color="success.main" sx={{ fontWeight: 700 }}>
-              {formatEnergy((chargingSessions || []).reduce((sum, c) => sum + safeNumber(c.charge_energy_added), 0))}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              总充电量
-            </Typography>
-          </Box>
-          <Box textAlign="center">
-            <Typography variant="h4" color="warning.main" sx={{ fontWeight: 700 }}>
-              {formatDuration((chargingSessions || []).reduce((sum, c) => sum + safeNumber(c.duration_min), 0))}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              总充电时长
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
+        </CardContent>
+      </Card>
 
       {/* 充电记录列表 */}
       {loading ? (

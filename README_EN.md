@@ -51,10 +51,14 @@ TeslaShow is a modern trip data visualization system designed specifically for T
 - Shows charging time, energy added, charging power and other key information
 - Supports pagination and time filtering
 
+<img src="img-show/charging.png" alt="Charging List Page" width="200">
+
 ### Charging Details Page
 - Detailed charging session data display (time, battery level changes, energy, power, etc.)
 - Voltage, current, power, and SOC variation curves during charging process
 - Charging location information
+
+<img src="img-show/charging-detail.png" alt="Charging Details Page" width="200">
 
 ### Footprint Analysis Page
 - Customizable time range trajectory aggregation display

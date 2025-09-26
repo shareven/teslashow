@@ -99,6 +99,7 @@ const DrivesPage: React.FC = () => {
   const [customEndDate, setCustomEndDate] = useState<dayjs.Dayjs | null>(null);
   const [customStartTime, setCustomStartTime] = useState<dayjs.Dayjs | null>(null);
   const [customEndTime, setCustomEndTime] = useState<dayjs.Dayjs | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 日期验证函数
   const handleStartDateChange = (newDate: dayjs.Dayjs | null) => {
@@ -207,11 +208,14 @@ const DrivesPage: React.FC = () => {
   useEffect(() => {
     const storedFilter = getStoredTimeFilter();
     setSelectedFilter(storedFilter);
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
-    fetchDrives(page);
-  }, [page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
+    if (isInitialized) {
+      fetchDrives(page);
+    }
+  }, [isInitialized, page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);

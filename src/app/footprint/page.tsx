@@ -54,6 +54,7 @@ const FootprintPage: React.FC = () => {
   const [customEndDate, setCustomEndDate] = useState<dayjs.Dayjs | null>(null);
   const [customStartTime, setCustomStartTime] = useState<dayjs.Dayjs | null>(null);
   const [customEndTime, setCustomEndTime] = useState<dayjs.Dayjs | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchFootprintData = async () => {
     try {
@@ -91,14 +92,21 @@ const FootprintPage: React.FC = () => {
         }
       }
 
-      const params = new URLSearchParams({
-        timeFilter: selectedFilter.value,
-      });
+      let url = '/api/footprint';
+      const params = new URLSearchParams();
+      
+      if (startDate) {
+        params.append('start_date', startDate);
+      }
+      if (endDate) {
+        params.append('end_date', endDate);
+      }
+      
+      if (params.toString()) {
+        url += `?${params}`;
+      }
 
-      if (startDate) params.append('customStart', startDate);
-      if (endDate) params.append('customEnd', endDate);
-
-      const response = await fetch(`/api/footprint?${params}`);
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('获取足迹数据失败');
@@ -118,11 +126,15 @@ const FootprintPage: React.FC = () => {
   useEffect(() => {
     const storedFilter = getStoredTimeFilter();
     setSelectedFilter(storedFilter);
+    setIsInitialized(true);
   }, []);
 
+  // 当过滤条件变化时重新获取数据
   useEffect(() => {
-    fetchFootprintData();
-  }, [selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
+    if (isInitialized) {
+      fetchFootprintData();
+    }
+  }, [isInitialized, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
 
   const handleFilterChange = (filter: TimeFilterType) => {
     setSelectedFilter(filter);
