@@ -26,8 +26,9 @@ import {
   Battery90,
   Timeline,
   ArrowBack,
+  LocationOn,
 } from '@mui/icons-material';
-import { ChargingProcess, ChargingData } from '@/types';
+import { ChargingProcess, ChargingData, MapPoint } from '@/types';
 
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
@@ -89,7 +90,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
   const [dataSeries, setDataSeries] = useState<DataSeries[]>([
     {
       key: 'charger_voltage',
-      label: '电压',
+      label: 'AC电压',
       color: '#2196F3', // 蓝色
       unit: 'V',
       visible: true,
@@ -97,7 +98,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
     },
     {
       key: 'charger_actual_current',
-      label: '电流',
+      label: 'AC电流',
       color: '#E91E63', // 粉红色
       unit: 'A',
       visible: true,
@@ -400,32 +401,53 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
         }}
       >
         <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-          <Box display="flex" alignItems="center" gap={2} mb={3}>
-            <BatteryChargingFull 
-              sx={{ 
-                fontSize: { xs: 28, sm: 32 }, 
-                color: 'primary.main' 
-              }} 
-            />
-            <Box>
-              <Typography 
-                variant="h6" 
+          <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <BatteryChargingFull 
                 sx={{ 
-                  fontWeight: 600,
-                  fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                  mb: { xs: 0.5, sm: 1 },
-                }}
-              >
-                基本信息
-              </Typography>
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-              >
-                {chargingProcess.car_name || chargingProcess.car_model || '未知车辆'}
-              </Typography>
+                  fontSize: { xs: 28, sm: 32 }, 
+                  color: 'primary.main' 
+                }} 
+              />
+              <Box>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontWeight: 600,
+                    fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                    mb: { xs: 0.5, sm: 1 },
+                  }}
+                >
+                  基本信息
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                >
+                  {chargingProcess.car_name || chargingProcess.car_model || '未知车辆'}
+                </Typography>
+              </Box>
             </Box>
+            {chargingProcess.charging_type && (
+              <Chip 
+                label={`${chargingProcess.charging_type} 充电`}
+                sx={{ 
+                  bgcolor: chargingProcess.charging_type === 'DC' ? '#FF5722' : '#2196F3',
+                  color: 'white',
+                  fontWeight: 700,
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  height: { xs: 28, sm: 32 },
+                  border: `2px solid ${chargingProcess.charging_type === 'DC' ? '#E64A19' : '#1976D2'}`,
+                  boxShadow: chargingProcess.charging_type === 'DC' 
+                    ? '0 2px 8px rgba(255, 87, 34, 0.4)' 
+                    : '0 2px 8px rgba(33, 150, 243, 0.4)',
+                  '& .MuiChip-label': {
+                    px: { xs: 1, sm: 1.5 },
+                  },
+                }}
+              />
+            )}
           </Box>
 
           <Grid container spacing={{ xs: 2, sm: 3 }}>
@@ -572,8 +594,6 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
           </Grid>
         </CardContent>
       </Card>
-
-
 
       {/* 充电曲线 */}
       <Card
@@ -763,12 +783,12 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                         case 'charger_voltage':
                           domain = dataRanges.voltage ? [dataRanges.voltage.min, dataRanges.voltage.max] : undefined;
                           tickCount = 5;
-                          label = '电压 (V)';
+                          label = 'AC电压 (V)';
                           break;
                         case 'charger_actual_current':
                           domain = dataRanges.current ? [dataRanges.current.min, dataRanges.current.max] : undefined;
                           tickCount = 5;
-                          label = '电流 (A)';
+                          label = 'AC电流 (A)';
                           break;
                         case 'charger_power':
                           domain = dataRanges.power ? [dataRanges.power.min, dataRanges.power.max] : undefined;

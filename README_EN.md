@@ -126,7 +126,6 @@ services:
       - DATABASE_NAME=teslamate
       - DATABASE_HOST=database
       - MQTT_HOST=mosquitto
-      - MQTT_IPV6=true
     ports:
       - 4000:4000
     volumes:
@@ -135,7 +134,7 @@ services:
       - all
 
   database:
-    image: postgres:17
+    image: postgres:17-trixie
     restart: always
    #  ports:
       # - 5433:5432  # Host port:Container port 5433 is for testing, teslashow project in docker still uses 5432

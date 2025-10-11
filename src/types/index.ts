@@ -63,6 +63,8 @@ export interface ChargingProcess {
   address?: string;
   latitude?: number;
   longitude?: number;
+  charging_type?: string;
+  avg_voltage?: number;
 }
 
 // 充电详细数据类型（用于图表展示）

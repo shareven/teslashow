@@ -9,7 +9,6 @@ services:
       - DATABASE_NAME=teslamate
       - DATABASE_HOST=database
       - MQTT_HOST=mosquitto
-      - MQTT_IPV6=true
     ports:
       - 4000:4000
     volumes:
@@ -18,7 +17,7 @@ services:
       - all
 
   database:
-    image: postgres:17
+    image: postgres:17-trixie
     restart: always
     # ports:
       # - 5433:5432  # 宿主机端口:容器端口5433是为测试使用，在teslashow项目在docker中还是使用5432

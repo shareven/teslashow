@@ -38,7 +38,22 @@ export async function GET(
         c.model as car_model,
         a.display_name as address,
         p.latitude,
-        p.longitude
+        p.longitude,
+        (
+          SELECT DISTINCT ch.fast_charger_present
+          FROM charges ch
+          WHERE ch.charging_process_id = cp.id
+            AND ch.fast_charger_present IS NOT NULL
+          LIMIT 1
+        ) as fast_charger_present,
+        (
+          SELECT DISTINCT ch.conn_charge_cable
+          FROM charges ch
+          WHERE ch.charging_process_id = cp.id
+            AND ch.conn_charge_cable IS NOT NULL
+            AND ch.conn_charge_cable != '<invalid>'
+          LIMIT 1
+        ) as conn_charge_cable
       FROM charging_processes cp
       LEFT JOIN cars c ON cp.car_id = c.id
       LEFT JOIN addresses a ON cp.address_id = a.id
@@ -56,11 +71,32 @@ export async function GET(
     }
 
     const chargingProcess = result.rows[0];
+    
+    // 使用数据库中的字段判断充电类型
+    let chargingType = 'Unknown';
+    
+    if (chargingProcess.fast_charger_present === true && chargingProcess.conn_charge_cable === 'GB_DC') {
+      chargingType = 'DC';
+    } else if (chargingProcess.fast_charger_present === false && chargingProcess.conn_charge_cable === 'GB_AC') {
+      chargingType = 'AC';
+    } else if (chargingProcess.conn_charge_cable === 'GB_AC') {
+      // 如果连接线是AC类型，即使fast_charger_present为null，也判断为AC
+      chargingType = 'AC';
+    } else if (chargingProcess.conn_charge_cable === 'GB_DC') {
+      // 如果连接线是DC类型，即使fast_charger_present为null，也判断为DC
+      chargingType = 'DC';
+    }
+    
+    // 添加充电类型到返回数据
+    const processWithType = {
+      ...chargingProcess,
+      charging_type: chargingType
+    };
 
-    console.log(`✅ 成功获取充电记录详情，ID: ${chargingId}`);
+    console.log(`✅ 成功获取充电记录详情，ID: ${chargingId}，充电类型: ${chargingType}`);
 
     return NextResponse.json({
-      chargingProcess,
+      chargingProcess: processWithType,
     });
   } catch (error) {
     console.error('❌ 获取充电记录详情失败:', error);

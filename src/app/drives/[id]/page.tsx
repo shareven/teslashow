@@ -44,6 +44,21 @@ import {
   convertToMapPoint,
 } from '@/utils';
 
+// 格式化地址，去掉最后2个逗号后面的内容
+const formatAddress = (address: string): string => {
+  if (!address) return '未知位置';
+  
+  // 按逗号分割地址
+  const parts = address.split(',');
+  
+  // 如果有超过2个部分，只保留前面的部分，去掉最后2个逗号后的内容
+  if (parts.length > 2) {
+    return parts.slice(0, -2).join(',').trim();
+  }
+  
+  return address.trim();
+};
+
 const DriveDetailPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
@@ -273,6 +288,71 @@ const DriveDetailPage: React.FC = () => {
                       >
                         耗时: {formatDuration(drive.duration_min)}
                       </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 1.5 }}>
+                    <LocationOn 
+                      color="primary" 
+                      sx={{ fontSize: { xs: 20, sm: 24 } }}
+                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
+                        行程路线
+                      </Typography>
+                      <Stack spacing={0.5}>
+                        {/* 起始位置 */}
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: '50%',
+                              bgcolor: 'success.main',
+                            }}
+                          />
+                          <Typography 
+                            variant="body2" 
+                            fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                            color="text.primary"
+                            sx={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {formatAddress(drive.start_address)}
+                          </Typography>
+                        </Stack>
+                        
+                        {/* 结束位置 */}
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: '50%',
+                              bgcolor: 'error.main',
+                            }}
+                          />
+                          <Typography 
+                            variant="body2" 
+                            fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                            color="text.primary"
+                            sx={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {formatAddress(drive.end_address)}
+                          </Typography>
+                        </Stack>
+                      </Stack>
                     </Box>
                   </Box>
                 </Stack>

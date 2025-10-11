@@ -26,7 +26,7 @@ import {
   BatteryChargingFull,
   Clear,
   ElectricCar,
-  TrendingUp,
+  LocationOn,
   AccessTime,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -74,7 +74,22 @@ const formatDuration = (minutes: number): string => {
 
 // 格式化速度 - 输入应该是 km/h
 const formatSpeed = (speed: number): string => {
-  return `${Math.round(speed)} km/h`;
+  return `${safeToFixed(speed, 1)} km/h`;
+};
+
+// 格式化地址，去掉最后2个逗号后面的内容
+const formatAddress = (address: string): string => {
+  if (!address) return '未知位置';
+  
+  // 按逗号分割地址
+  const parts = address.split(',');
+  
+  // 如果有超过2个部分，只保留前面的部分，去掉最后2个逗号后的内容
+  if (parts.length > 2) {
+    return parts.slice(0, -2).join(',').trim();
+  }
+  
+  return address.trim();
 };
 
 const DrivesPage: React.FC = () => {
@@ -628,100 +643,55 @@ const DrivesPage: React.FC = () => {
                   </Box>
                 </Box>
 
-                {/* 续航信息 */}
-                <Box 
-                  p={{ xs: 2, sm: 2.5 }}
-                  sx={{
-                    bgcolor: 'rgba(33, 150, 243, 0.05)',
-                    borderRadius: 2,
-                    border: '1px solid rgba(33, 150, 243, 0.1)',
-                  }}
-                >
-                  <Stack spacing={1.5}>
+                {/* 位置信息 */}
+                <Box>
+                  <Stack spacing={1}>
+                    {/* 起始位置 */}
                     <Stack direction="row" alignItems="center" spacing={1}>
-                      <Avatar sx={{ 
-                        bgcolor: 'info.main', 
-                        width: { xs: 28, sm: 32 }, 
-                        height: { xs: 28, sm: 32 } 
-                      }}>
-                        <TrendingUp sx={{ fontSize: { xs: 14, sm: 16 } }} />
-                      </Avatar>
+                      <Box
+                        sx={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          bgcolor: 'success.main',
+                        }}
+                      />
                       <Typography 
-                        variant="subtitle2" 
-                        color="info.main" 
+                        variant="body2" 
                         fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
-                        fontWeight={600}
-                      >
-                        续航变化
-                      </Typography>
-                    </Stack>
-                    <Stack 
-                      direction="row" 
-                      alignItems="center" 
-                      justifyContent="space-between"
-                      spacing={2}
-                    >
-                      <Stack alignItems="center" spacing={0.5}>
-                        <Typography 
-                          variant="h6" 
-                          fontWeight={700} 
-                          fontSize={{ xs: '1rem', sm: '1.25rem' }}
-                          color="info.main"
-                        >
-                          {safeToFixed(drive.start_ideal_range_km, 0)}
-                        </Typography>
-                        <Typography 
-                          variant="caption" 
-                          color="text.secondary"
-                          fontSize={{ xs: '0.625rem', sm: '0.75rem' }}
-                        >
-                          起始续航(km)
-                        </Typography>
-                      </Stack>
-                      <Box 
-                        sx={{ 
-                          flex: 1, 
-                          mx: { xs: 1, sm: 2 },
-                          height: { xs: 3, sm: 4 }, 
-                          bgcolor: 'grey.200', 
-                          borderRadius: 2,
-                          position: 'relative',
+                        color="text.primary"
+                        sx={{
                           overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            left: 0,
-                            top: 0,
-                            height: '100%',
-                            width: `${Math.min(100, Math.max(0, 
-                              ((safeNumber(drive.start_ideal_range_km) - safeNumber(drive.end_ideal_range_km)) / 
-                               safeNumber(drive.start_ideal_range_km)) * 100
-                            ))}%`,
-                            background: 'linear-gradient(90deg, #ff5722 0%, #ff9800 100%)',
-                            borderRadius: 2,
-                            transition: 'width 0.3s ease',
-                          }}
-                        />
-                      </Box>
-                      <Stack alignItems="center" spacing={0.5}>
-                        <Typography 
-                          variant="h6" 
-                          fontWeight={700} 
-                          fontSize={{ xs: '1rem', sm: '1.25rem' }}
-                          color="info.main"
-                        >
-                          {safeToFixed(drive.end_ideal_range_km, 0)}
-                        </Typography>
-                        <Typography 
-                          variant="caption" 
-                          color="text.secondary"
-                          fontSize={{ xs: '0.625rem', sm: '0.75rem' }}
-                        >
-                          结束续航(km)
-                        </Typography>
-                      </Stack>
+                        {formatAddress(drive.start_address)}
+                      </Typography>
+                    </Stack>
+                    
+                    {/* 结束位置 */}
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Box
+                        sx={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          bgcolor: 'error.main',
+                        }}
+                      />
+                      <Typography 
+                        variant="body2" 
+                        fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
+                        color="text.primary"
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {formatAddress(drive.end_address)}
+                      </Typography>
                     </Stack>
                   </Stack>
                 </Box>
