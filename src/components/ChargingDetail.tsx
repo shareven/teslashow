@@ -578,12 +578,26 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                 <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                   充电地址
                 </Typography>
-                <Typography variant="h6" sx={{ 
-                  fontWeight: 600, 
-                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                  lineHeight: { xs: 1.2, sm: 1.4 },
-                  wordBreak: 'break-all'
-                }}>
+                <Typography 
+                  variant="h6" 
+                  onClick={() => {
+                    if (chargingProcess.address) {
+                      router.push(`/map?address=${encodeURIComponent(chargingProcess.address)}&lat=${chargingProcess.latitude || ''}&lng=${chargingProcess.longitude || ''}`);
+                    }
+                  }}
+                  sx={{ 
+                    fontWeight: 600, 
+                    fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                    lineHeight: { xs: 1.2, sm: 1.4 },
+                    wordBreak: 'break-all',
+                    cursor: chargingProcess.address ? 'pointer' : 'default',
+                    color: chargingProcess.address ? 'primary.main' : 'text.primary',
+                    '&:hover': {
+                      color: chargingProcess.address ? 'primary.dark' : 'text.primary',
+                      textDecoration: chargingProcess.address ? 'underline' : 'none'
+                    }
+                  }}
+                >
                   {chargingProcess.address || '未知位置'}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>

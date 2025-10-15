@@ -498,7 +498,7 @@ const DrivesPage: React.FC = () => {
                       fontSize: { xs: '0.625rem', sm: '0.875rem' },
                     }}
                   >
-                    行程 #{drive.id}
+                    行程 #{drive.id} · {drive.car_name || drive.car_model || '未知车辆'}
                   </Typography>
                 </Stack>
                 <Chip 

@@ -415,7 +415,7 @@ const FootprintPage: React.FC = () => {
           <Grid size={{ xs: 12, lg: 8 }}>
             <Card 
               sx={{ 
-                height: { xs: '300px', sm: '400px', md: '500px' },
+                height: { xs: '400px', sm: '500px', md: '600px' },
                 borderRadius: 3,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                 overflow: 'hidden',

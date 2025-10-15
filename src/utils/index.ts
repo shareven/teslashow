@@ -80,7 +80,7 @@ export const formatDateRange = (startDate: string, endDate: string): string => {
 // 计算平均速度
 export const calculateAverageSpeed = (distance: number, duration: number): number => {
   if (duration === 0) return 0;
-  return (distance / 1000) / (duration / 60); // km/h
+  return distance / (duration / 60); // km/h
 };
 
 // 计算能耗 (Wh/km)

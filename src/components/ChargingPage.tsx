@@ -289,17 +289,25 @@ const ChargingPage: React.FC = () => {
           }}
         >
           <Stack direction="row" alignItems="center" spacing={{ xs: 1.5, sm: 2 }}>
-            <Avatar
-              sx={{
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(10px)',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                width: { xs: 40, sm: 48 },
+            <Chip 
+              label={charging.charging_type || 'DC'}
+              sx={{ 
+                bgcolor: charging.charging_type === 'DC' ? '#FF5722' : '#2196F3',
+                color: 'white',
+                fontWeight: 700,
+                fontSize: { xs: '0.875rem', sm: '1rem' },
                 height: { xs: 40, sm: 48 },
+                width: { xs: 50, sm: 60 },
+                border: `2px solid ${charging.charging_type === 'DC' ? '#E64A19' : '#1976D2'}`,
+                boxShadow: charging.charging_type === 'DC' 
+                  ? '0 2px 8px rgba(255, 87, 34, 0.4)' 
+                  : '0 2px 8px rgba(33, 150, 243, 0.4)',
+                '& .MuiChip-label': {
+                  px: { xs: 1, sm: 1.5 },
+                  fontWeight: 700,
+                },
               }}
-            >
-              <BatteryChargingFull sx={{ fontSize: { xs: 20, sm: 24 } }} />
-            </Avatar>
+            />
             <Stack flex={1} spacing={0.5}>
               <Typography
                 variant="h6"
@@ -321,41 +329,20 @@ const ChargingPage: React.FC = () => {
                 充电记录 #{charging.id} · {charging.car_name || charging.car_model || '未知车辆'}
               </Typography>
             </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              {charging.charging_type && (
-                <Chip 
-                  label={charging.charging_type}
-                  sx={{ 
-                    bgcolor: charging.charging_type === 'DC' ? '#FF5722' : '#2196F3',
-                    color: 'white',
-                    fontWeight: 700,
-                    fontSize: { xs: '0.625rem', sm: '0.75rem' },
-                    height: { xs: 24, sm: 28 },
-                    border: `2px solid ${charging.charging_type === 'DC' ? '#E64A19' : '#1976D2'}`,
-                    boxShadow: charging.charging_type === 'DC' 
-                      ? '0 2px 8px rgba(255, 87, 34, 0.4)' 
-                      : '0 2px 8px rgba(33, 150, 243, 0.4)',
-                    '& .MuiChip-label': {
-                      px: { xs: 0.75, sm: 1 },
-                    },
-                  }}
-                />
-              )}
-              <Chip 
-                label={`+${formatBatteryLevel(batteryGain)}`}
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  height: { xs: 28, sm: 32 },
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  '& .MuiChip-label': {
-                    px: { xs: 1, sm: 1.5 },
-                  },
-                }}
-              />
-            </Stack>
+            <Chip 
+              label={`+${formatBatteryLevel(batteryGain)}`}
+              sx={{ 
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                height: { xs: 28, sm: 32 },
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                '& .MuiChip-label': {
+                  px: { xs: 1, sm: 1.5 },
+                },
+              }}
+            />
           </Stack>
         </Box>
 
