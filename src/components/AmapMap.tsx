@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, Alert, CircularProgress } from '@mui/material';
 import { MapPoint, MapPath } from '@/types';
+import { convertToMapPoint } from '@/utils';
 
 interface AmapMapProps {
   center?: MapPoint;
@@ -35,14 +36,18 @@ const AmapMap: React.FC<AmapMapProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 安全的数值处理
+  // 安全的数值处理和坐标转换
   const safeMapPoint = (point: MapPoint): MapPoint => {
     const lat = Number(point.lat);
     const lng = Number(point.lng);
-    return {
-      lat: isNaN(lat) ? 39.916 : lat,
-      lng: isNaN(lng) ? 116.397 : lng,
-    };
+    
+    // 如果坐标无效，返回默认坐标（北京）
+    if (isNaN(lat) || isNaN(lng)) {
+      return { lat: 39.916, lng: 116.397 };
+    }
+    
+    // 进行WGS84到GCJ02坐标转换
+    return convertToMapPoint(lat, lng);
   };
 
   useEffect(() => {

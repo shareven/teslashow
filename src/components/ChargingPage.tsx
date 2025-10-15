@@ -79,6 +79,21 @@ const formatEnergy = (energy: number): string => {
   return `${safeToFixed(energy, 1)} kWh`;
 };
 
+// 格式化地址
+const formatAddress = (address: string): string => {
+  if (!address) return '未知位置';
+  
+  // 按逗号分割地址
+  const parts = address.split(',');
+  
+  // 如果有超过2个部分，只保留前面的部分，去掉最后2个逗号后的内容
+  if (parts.length > 2) {
+    return parts.slice(0, -2).join(',').trim();
+  }
+  
+  return address.trim();
+};
+
 const ChargingPage: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
@@ -365,7 +380,7 @@ const ChargingPage: React.FC = () => {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                   }}>
-                    {charging.address}
+                    {formatAddress(charging.address)}
                   </Typography>
                 </Box>
               )}

@@ -29,7 +29,7 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { ChargingProcess, ChargingData, MapPoint } from '@/types';
-
+import { convertToMapPoint } from '@/utils';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -58,6 +58,21 @@ const safeNumber = (value: any): number => {
 const safeToFixed = (value: any, digits: number): string => {
   const num = safeNumber(value);
   return num.toFixed(digits);
+};
+
+// 格式化地址
+const formatAddress = (address: string): string => {
+  if (!address) return '未知位置';
+  
+  // 按逗号分割地址
+  const parts = address.split(',');
+  
+  // 如果有超过2个部分，只保留前面的部分，去掉最后2个逗号后的内容
+  if (parts.length > 2) {
+    return parts.slice(0, -2).join(',').trim();
+  }
+  
+  return address.trim();
 };
 
 interface ChargingDetailProps {
@@ -162,6 +177,11 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
     };
     
     loadData();
+  }, [chargingId]);
+
+  // 页面加载时滚动到顶部
+  useEffect(() => {
+    window.scrollTo(0, 0);
   }, [chargingId]);
 
   // 当充电数据更新时，更新数据系列的最小值和最大值
@@ -581,8 +601,9 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                 <Typography 
                   variant="h6" 
                   onClick={() => {
-                    if (chargingProcess.address) {
-                      router.push(`/map?address=${encodeURIComponent(chargingProcess.address)}&lat=${chargingProcess.latitude || ''}&lng=${chargingProcess.longitude || ''}`);
+                    if (chargingProcess.address && chargingProcess.latitude && chargingProcess.longitude) {
+                      const convertedCoords = convertToMapPoint(chargingProcess.latitude, chargingProcess.longitude);
+                      router.push(`/charging/map?address=${encodeURIComponent(chargingProcess.address)}&lat=${convertedCoords.lat}&lng=${convertedCoords.lng}`);
                     }
                   }}
                   sx={{ 
@@ -598,7 +619,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                     }
                   }}
                 >
-                  {chargingProcess.address || '未知位置'}
+                  {formatAddress(chargingProcess.address || '')}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                   充电位置

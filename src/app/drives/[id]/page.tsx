@@ -97,6 +97,11 @@ const DriveDetailPage: React.FC = () => {
     }
   }, [driveId]);
 
+  // 页面加载时滚动到顶部
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [driveId]);
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -125,21 +130,21 @@ const DriveDetailPage: React.FC = () => {
 
 
   // 准备地图数据
-  const mapCenter: MapPoint = {
-    lat: (safeNumber(drive.start_latitude) + safeNumber(drive.end_latitude)) / 2,
-    lng: (safeNumber(drive.start_longitude) + safeNumber(drive.end_longitude)) / 2,
-  };
+  const mapCenter: MapPoint = convertToMapPoint(
+    (safeNumber(drive.start_latitude) + safeNumber(drive.end_latitude)) / 2,
+    (safeNumber(drive.start_longitude) + safeNumber(drive.end_longitude)) / 2
+  );
 
   const mapPaths: MapPath[] = positions.length > 0 ? [{
-    points: positions.map(pos => convertToMapPoint(safeNumber(pos.latitude), safeNumber(pos.longitude))),
+    points: positions.map(pos => ({ lat: safeNumber(pos.latitude), lng: safeNumber(pos.longitude) })),
     color: '#FF6B6B',
     weight: 4,
     opacity: 0.8,
   }] : [];
 
   const markers: MapPoint[] = [
-    convertToMapPoint(safeNumber(drive.start_latitude), safeNumber(drive.start_longitude)),
-    convertToMapPoint(safeNumber(drive.end_latitude), safeNumber(drive.end_longitude)),
+    { lat: safeNumber(drive.start_latitude), lng: safeNumber(drive.start_longitude) },
+    { lat: safeNumber(drive.end_latitude), lng: safeNumber(drive.end_longitude) },
   ];
 
   const averageSpeed = calculateAverageSpeed(safeNumber(drive.distance), safeNumber(drive.duration_min));

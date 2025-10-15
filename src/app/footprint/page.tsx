@@ -150,16 +150,17 @@ const FootprintPage: React.FC = () => {
 
   // 准备地图数据
   const mapPaths: MapPath[] = positions.length > 0 ? [{
-    points: positions.map(pos => convertToMapPoint(safeNumber(pos.latitude), safeNumber(pos.longitude))),
+    points: positions.map(pos => ({ lat: safeNumber(pos.latitude), lng: safeNumber(pos.longitude) })),
     color: getRandomColor(),
     weight: 3,
     opacity: 0.7,
   }] : [];
 
-  const mapCenter = (positions && positions.length > 0) ? {
-    lat: positions.reduce((sum, pos) => sum + safeNumber(pos.latitude), 0) / positions.length,
-    lng: positions.reduce((sum, pos) => sum + safeNumber(pos.longitude), 0) / positions.length,
-  } : { lat: 39.916, lng: 116.397 };
+  const mapCenter = (positions && positions.length > 0) ? 
+    {
+      lat: positions.reduce((sum, pos) => sum + safeNumber(pos.latitude), 0) / positions.length,
+      lng: positions.reduce((sum, pos) => sum + safeNumber(pos.longitude), 0) / positions.length
+    } : { lat: 39.916, lng: 116.397 };
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, sm: 3 } }}>
