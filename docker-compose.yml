@@ -65,6 +65,8 @@ services:
       - DB_NAME=teslamate
       - DB_USER=teslamate
       - DB_PASSWORD=password	# Use the same password as database service
+      - USER=username       # Use the username to login ui
+      - PASSWORD=password 	# Use the password to login ui
       
       # Amap API Configuration
       # Please apply for your API keys at Amap Open Platform (https://lbs.amap.com/)
