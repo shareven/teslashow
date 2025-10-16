@@ -31,8 +31,8 @@
    - `DB_PASSWORD`: 数据库密码
    - `AMAP_API_KEY`: 高德地图API密钥
    - `AMAP_SECURITY_KEY`: 高德地图安全密钥
-   - `USER`: 登录用户名
-   - `PASSWORD`: 登录密码
+   - `TESLASHOW_USER`: 登录用户名
+   - `TESLASHOW_PASSWORD`: 登录密码
 
 ## 自动环境检测
 

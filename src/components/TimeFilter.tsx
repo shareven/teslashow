@@ -65,9 +65,6 @@ const TimeFilter: React.FC<TimeFilterProps> = ({
         onCustomEndTimeChange(newDate.endOf('day'));
       }
     }
-    if (customEndDate && onCustomTimeSelected) {
-      setTimeout(() => onCustomTimeSelected(), 100);
-    }
   };
 
   const handleEndDateChange = (newDate: dayjs.Dayjs | null) => {
@@ -78,9 +75,6 @@ const TimeFilter: React.FC<TimeFilterProps> = ({
     if (newDate && !customEndTime) {
       onCustomEndTimeChange(newDate.endOf('day'));
     }
-    if (customStartDate && onCustomTimeSelected) {
-      setTimeout(() => onCustomTimeSelected(), 100);
-    }
   };
 
   const handleTimeChange = (
@@ -88,9 +82,6 @@ const TimeFilter: React.FC<TimeFilterProps> = ({
     newTime: dayjs.Dayjs | null
   ) => {
     setter(newTime);
-    if (customStartDate && customEndDate && onCustomTimeSelected) {
-      setTimeout(() => onCustomTimeSelected(), 100);
-    }
   };
 
   const handleFilterSelectChange = (value: string) => {

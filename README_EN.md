@@ -182,8 +182,8 @@ services:
       - DB_NAME=teslamate
       - DB_USER=teslamate
       - DB_PASSWORD=password	# Use the same password as database service
-      - USER=username       # Use the username to login ui
-      - PASSWORD=password 	# Use the password to login ui
+      - TESLASHOW_USER=username       # Use the username to login ui
+      - TESLASHOW_PASSWORD=password 	# Use the password to login ui
       
       
       # Amap API Configuration
@@ -200,6 +200,8 @@ services:
  - **Database password**: Replace all `password` with a secure password
  - **Encryption key**: Replace `secretkey` with a secure encryption key
  - **Amap API**: Configure your Amap API keys
+ - **TESLASHOW_USER**: Configure your login username
+ - **TESLASHOW_PASSWORD**: Configure your login password
  
  4. **Start all services**
 ```bash

@@ -32,6 +32,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { ChargingProcess, TimeFilter as TimeFilterType } from '@/types';
 import { formatDateRange, timeFilterOptions, getDateRange } from '@/utils';
+import apiClient from '@/lib/apiClient';
 import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
 import TimeFilter from '@/components/TimeFilter';
@@ -131,11 +132,9 @@ const ChargingPage: React.FC = () => {
       // 自动设置结束时间为23:59:59
       setCustomEndTime(dayjs().endOf('day'));
     }
-    // 如果有结束日期，自动更新数据
+    // 重置页码到第一页，让useEffect处理数据获取
     if (customEndDate) {
-      setTimeout(() => {
-        setPage(1);
-      }, 100);
+      setPage(1);
     }
   };
 
@@ -149,11 +148,9 @@ const ChargingPage: React.FC = () => {
     if (newDate && !customEndTime) {
       setCustomEndTime(dayjs().endOf('day'));
     }
-    // 如果有开始日期，自动更新数据
+    // 重置页码到第一页，让useEffect处理数据获取
     if (customStartDate) {
-      setTimeout(() => {
-        setPage(1);
-      }, 100);
+      setPage(1);
     }
   };
   
@@ -198,13 +195,9 @@ const ChargingPage: React.FC = () => {
         url += `&end_date=${endDate}`;
       }
       
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error('获取充电数据失败');
-      }
-
+      const response = await apiClient.get(url);
       const data = await response.json();
+      
       setChargingSessions(data.chargingProcesses || []);
       setTotalPages(data.pagination?.totalPages || 1);
       setTotalCount(data.pagination?.total || 0);

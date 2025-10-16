@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { validateApiAuth } from '@/lib/apiAuth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // 验证授权
+  const authError = validateApiAuth(request);
+  if (authError) {
+    return authError;
+  }
   try {
     const resolvedParams = await params;
     const chargingId = parseInt(resolvedParams.id);

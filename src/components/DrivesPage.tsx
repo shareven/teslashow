@@ -32,6 +32,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Drive, TimeFilter as TimeFilterType } from '@/types';
 import { calculateEnergyConsumption, formatEnergyConsumption, formatDateRange, timeFilterOptions, getDateRange } from '@/utils';
+import apiClient from '@/lib/apiClient';
 import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
 import TimeFilter from '@/components/TimeFilter';
@@ -129,12 +130,9 @@ const DrivesPage: React.FC = () => {
       // 自动设置结束时间为23:59:59
       setCustomEndTime(dayjs().endOf('day'));
     }
-    // 如果有结束日期，自动更新数据
+    // 重置页码到第一页，让useEffect处理数据获取
     if (customEndDate) {
-      setTimeout(() => {
-        setPage(1);
-        fetchDrives(1);
-      }, 100);
+      setPage(1);
     }
   };
 
@@ -148,12 +146,9 @@ const DrivesPage: React.FC = () => {
     if (newDate && !customEndTime) {
       setCustomEndTime(dayjs().endOf('day'));
     }
-    // 如果有开始日期，自动更新数据
+    // 重置页码到第一页，让useEffect处理数据获取
     if (customStartDate) {
-      setTimeout(() => {
-        setPage(1);
-        fetchDrives(1);
-      }, 100);
+      setPage(1);
     }
   };
   
@@ -201,13 +196,9 @@ const DrivesPage: React.FC = () => {
         url += `&end_date=${endDate}`;
       }
       
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error('获取行程数据失败');
-      }
-
+      const response = await apiClient.get(url);
       const data = await response.json();
+      
       setDrives(data.drives);
       setTotalPages(data.pagination.totalPages);
       setTotalCount(data.pagination.total);
@@ -411,22 +402,16 @@ const DrivesPage: React.FC = () => {
           onCustomEndDateChange={handleEndDateChange}
           onCustomStartTimeChange={(time) => {
             setCustomStartTime(time);
-            // 如果有完整的日期范围，自动更新数据
+            // 重置到第一页，useEffect会自动处理数据获取
             if (customStartDate && customEndDate) {
-              setTimeout(() => {
-                setPage(1);
-                fetchDrives(1);
-              }, 100);
+              setPage(1);
             }
           }}
           onCustomEndTimeChange={(time) => {
             setCustomEndTime(time);
-            // 如果有完整的日期范围，自动更新数据
+            // 重置到第一页，useEffect会自动处理数据获取
             if (customStartDate && customEndDate) {
-              setTimeout(() => {
-                setPage(1);
-                fetchDrives(1);
-              }, 100);
+              setPage(1);
             }
           }}
           loading={loading}

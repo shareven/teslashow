@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -31,6 +31,7 @@ import {
 import { ChargingProcess, ChargingData, MapPoint } from '@/types';
 import { convertToMapPoint } from '@/utils';
 import { useRouter } from 'next/navigation';
+import apiClient from '@/lib/apiClient';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import 'dayjs/locale/zh-cn';
@@ -75,6 +76,18 @@ const formatAddress = (address: string): string => {
   return address.trim();
 };
 
+// 格式化充电时长
+const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.round(minutes % 60);
+  
+  if (hours === 0) {
+    return `${mins}分钟`;
+  }
+  
+  return `${hours}小时${mins}分钟`;
+};
+
 interface ChargingDetailProps {
   chargingId: number;
 }
@@ -100,6 +113,9 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
   const [chargingData, setChargingData] = useState<ChargingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // 防止重复请求
+  const hasInitialized = useRef(false);
   
   // 数据系列可见性控制
   const [dataSeries, setDataSeries] = useState<DataSeries[]>([
@@ -138,35 +154,32 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
   ]);
 
   // 获取充电过程基本信息
-  const fetchChargingProcess = async () => {
+  const fetchChargingProcess = useCallback(async () => {
     try {
-      const response = await fetch(`/api/charging/${chargingId}`);
-      if (!response.ok) {
-        throw new Error('获取充电信息失败');
-      }
+      const response = await apiClient.get(`/api/charging/${chargingId}`);
       const data = await response.json();
       setChargingProcess(data.chargingProcess);
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     }
-  };
+  }, [chargingId]);
 
   // 获取充电详细数据
-  const fetchChargingData = async () => {
+  const fetchChargingData = useCallback(async () => {
     try {
-      const response = await fetch(`/api/charging/${chargingId}/data`);
-      if (!response.ok) {
-        throw new Error('获取充电数据失败');
-      }
+      const response = await apiClient.get(`/api/charging/${chargingId}/data`);
       const data = await response.json();
       setChargingData(data.chargingData);
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     }
-  };
+  }, [chargingId]);
 
   // 初始化数据
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    
     const loadData = async () => {
       setLoading(true);
       await Promise.all([
@@ -177,7 +190,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
     };
     
     loadData();
-  }, [chargingId]);
+  }, [chargingId, fetchChargingProcess, fetchChargingData]);
 
   // 页面加载时滚动到顶部
   useEffect(() => {
@@ -478,7 +491,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                   充电时间
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                  {Math.round(safeNumber(chargingProcess.duration_min) / 60 * 10) / 10}h
+                  {formatDuration(safeNumber(chargingProcess.duration_min))}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                   {startTime.format('MM-DD HH:mm')} - {endTime.format('HH:mm')}

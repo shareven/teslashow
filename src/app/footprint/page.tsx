@@ -35,6 +35,7 @@ import {
   getDateRange,
 } from '@/utils';
 import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
+import apiClient from '@/lib/apiClient';
 
 const FootprintPage: React.FC = () => {
   const theme = useTheme();
@@ -106,17 +107,13 @@ const FootprintPage: React.FC = () => {
         url += `?${params}`;
       }
 
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error('获取足迹数据失败');
-      }
-
+      const response = await apiClient.get(url);
       const data = await response.json();
+      
       setStatistics(data.statistics);
       setPositions(data.positions);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : '未知错误');debugger;
     } finally {
       setLoading(false);
     }
@@ -212,7 +209,6 @@ const FootprintPage: React.FC = () => {
           onCustomEndDateChange={setCustomEndDate}
           onCustomStartTimeChange={setCustomStartTime}
           onCustomEndTimeChange={setCustomEndTime}
-          onCustomTimeSelected={fetchFootprintData}
           loading={loading}
         />
 

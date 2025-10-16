@@ -13,15 +13,26 @@ import {
   Avatar,
   useMediaQuery,
   useTheme,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import { 
   Timeline,
   Place,
   BatteryChargingFull,
+  AccountCircle,
+  Logout,
+  Menu as MenuIcon,
+  Palette,
 } from '@mui/icons-material';
 import TeslaShowLogo from './TeslaShowLogo';
 import { useRouter, usePathname } from 'next/navigation';
 import ThemeColorSelector from './ThemeColorSelector';
+import AuthGuard from './AuthGuard';
+import { useAuth } from '@/lib/AuthProvider';
+import { useThemeColor } from '@/lib/ThemeColorProvider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,6 +43,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  const { logout } = useAuth();
+  const { currentTheme, setThemeColor, availableColors } = useThemeColor();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [mobileMenuAnchor, setMobileMenuAnchor] = React.useState<null | HTMLElement>(null);
+  const [themeMenuAnchor, setThemeMenuAnchor] = React.useState<null | HTMLElement>(null);
+
+  // 如果是登录页面，直接返回子组件，不显示导航栏
+  if (pathname === '/login') {
+    return (
+      <>
+        <CssBaseline />
+        {children}
+      </>
+    );
+  }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     router.push(newValue);
@@ -41,6 +67,44 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (pathname.startsWith('/footprint')) return '/footprint';
     if (pathname.startsWith('/charging')) return '/charging';
     return '/';
+  };
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleUserMenuClose();
+    router.push('/login');
+  };
+
+  const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMobileMenuAnchor(event.currentTarget);
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuAnchor(null);
+  };
+
+  const handleMobileLogout = () => {
+    logout();
+    handleMobileMenuClose();
+    router.push('/login');
+  };
+
+  const handleThemeMenuClose = () => {
+    setThemeMenuAnchor(null);
+  };
+
+  const handleColorSelect = (colorId: string) => {
+    setThemeColor(colorId);
+    handleThemeMenuClose();
+    handleMobileMenuClose();
   };
 
   const navigationItems = [
@@ -170,11 +234,201 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Tabs>
               )}
               
-              {/* 主题色选择器 */}
-              <ThemeColorSelector />
+              {isMobile ? (
+                // 移动端：菜单按钮
+                <IconButton
+                  onClick={handleMobileMenuOpen}
+                  sx={{
+                    color: 'text.secondary',
+                    '&:hover': {
+                      bgcolor: 'action.hover',
+                    },
+                  }}
+                >
+                  <MenuIcon />
+                </IconButton>
+              ) : (
+                // 桌面端：主题选择器和用户菜单
+                <>
+                  <ThemeColorSelector />
+                  <IconButton
+                    onClick={handleUserMenuOpen}
+                    sx={{
+                      color: 'text.secondary',
+                      '&:hover': {
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <AccountCircle />
+                  </IconButton>
+                </>
+              )}
             </Box>
           </Toolbar>
         </AppBar>
+        
+        {/* 桌面端用户菜单 */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleUserMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <MenuItem onClick={handleLogout}>
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>退出登录</ListItemText>
+          </MenuItem>
+        </Menu>
+
+        {/* 移动端菜单 */}
+        <Menu
+          anchorEl={mobileMenuAnchor}
+          open={Boolean(mobileMenuAnchor)}
+          onClose={handleMobileMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              mt: 1,
+              borderRadius: 2,
+              minWidth: 180,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              border: '1px solid',
+              borderColor: 'divider',
+            },
+          }}
+        >
+          <MenuItem 
+            onClick={(e) => {
+              e.stopPropagation();
+              setThemeMenuAnchor(e.currentTarget);
+            }}
+          >
+            <ListItemIcon>
+              <Palette fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>主题色</ListItemText>
+          </MenuItem>
+          
+          <MenuItem onClick={handleMobileLogout}>
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>退出登录</ListItemText>
+          </MenuItem>
+        </Menu>
+
+        {/* 主题颜色选择菜单 */}
+        <Menu
+          anchorEl={themeMenuAnchor}
+          open={Boolean(themeMenuAnchor)}
+          onClose={handleThemeMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              mt: 1,
+              borderRadius: 2,
+              minWidth: 200,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              border: '1px solid',
+              borderColor: 'divider',
+            },
+          }}
+        >
+          <Box sx={{ p: 2, pb: 1 }}>
+            <Typography 
+              variant="subtitle2" 
+              color="text.secondary"
+              sx={{ 
+                fontWeight: 600,
+                fontSize: '0.75rem',
+              }}
+            >
+              选择主题色
+            </Typography>
+          </Box>
+          
+          {availableColors.map((color) => (
+            <MenuItem
+              key={color.id}
+              onClick={() => handleColorSelect(color.id)}
+              sx={{
+                px: 2,
+                py: 1.5,
+                mx: 1,
+                mb: 0.5,
+                borderRadius: 1.5,
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+                '&:last-child': {
+                  mb: 1,
+                },
+              }}
+            >
+              <Box display="flex" alignItems="center" gap={2} width="100%">
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    bgcolor: color.primary,
+                    border: currentTheme.id === color.id ? '2px solid' : '1px solid',
+                    borderColor: currentTheme.id === color.id ? color.primary : 'divider',
+                    transform: currentTheme.id === color.id ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'all 0.2s ease-in-out',
+                  }}
+                />
+                
+                <Typography 
+                  variant="body2"
+                  sx={{ 
+                    fontWeight: currentTheme.id === color.id ? 600 : 400,
+                    color: currentTheme.id === color.id ? color.primary : 'text.primary',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  {color.name}
+                </Typography>
+                
+                {currentTheme.id === color.id && (
+                  <Box
+                    sx={{
+                      ml: 'auto',
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      bgcolor: color.primary,
+                    }}
+                  />
+                )}
+              </Box>
+            </MenuItem>
+          ))}
+        </Menu>
         
         {/* 主内容区域 */}
         <Box 
@@ -185,7 +439,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             minHeight: 'calc(100vh - 64px)',
           }}
         >
-          {children}
+          <AuthGuard>
+            {children}
+          </AuthGuard>
         </Box>
       </Box>
     </>

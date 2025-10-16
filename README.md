@@ -182,8 +182,8 @@ services:
       - DB_NAME=teslamate
       - DB_USER=teslamate
       - DB_PASSWORD=password	# Use the same password as database service
-      - USER=username       # Use the username to login ui
-      - PASSWORD=password 	# Use the password to login ui
+      - TESLASHOW_USER=username       # Use the username to login ui
+      - TESLASHOW_PASSWORD=password 	# Use the password to login ui
       
       # Amap API Configuration
       # Please apply for your API keys at Amap Open Platform (https://lbs.amap.com/)
@@ -199,6 +199,8 @@ services:
  - **数据库密码**：将所有 `password` 替换为安全密码
  - **加密密钥**：将 `secretkey` 替换为安全的加密密钥
  - **高德地图API**：配置您的高德地图API密钥
+ - **TESLASHOW_USER**：配置您的登录用户名
+ - **TESLASHOW_PASSWORD**：配置您的登录密码
  
  4. **启动所有服务**
 ```bash

@@ -18,8 +18,8 @@ COPY . /teslashow/
 # 如果需要使用中国时区，可以改为：
 ENV TZ=Asia/Shanghai
 
-LABEL version="1.6"
-
+LABEL version="2.0"
+LABEL description="TeslaShow"
 # 暴露端口
 EXPOSE 3000
 

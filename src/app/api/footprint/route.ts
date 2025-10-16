@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { calculateEnergyConsumption } from '@/utils';
+import { validateApiAuth } from '@/lib/apiAuth';
 
 export async function GET(request: NextRequest) {
+  // 验证授权
+  const authError = validateApiAuth(request);
+  if (authError) {
+    return authError;
+  }
   try {
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('start_date');

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Card,
@@ -43,6 +43,7 @@ import {
   safeToFixed,
   convertToMapPoint,
 } from '@/utils';
+import apiClient from '@/lib/apiClient';
 
 // 格式化地址，去掉最后2个逗号后面的内容
 const formatAddress = (address: string): string => {
@@ -70,31 +71,39 @@ const DriveDetailPage: React.FC = () => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchedDriveIdRef = useRef<string | null>(null);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
+    if (!driveId) return;
+    
+    // 如果已经获取过相同的driveId，或者正在加载中，则跳过
+    if (fetchedDriveIdRef.current === driveId || isLoadingRef.current) {
+      return;
+    }
+
     const fetchDriveDetail = async () => {
       try {
+        isLoadingRef.current = true;
         setLoading(true);
-        const response = await fetch(`/api/drives/${driveId}`);
-        
-        if (!response.ok) {
-          throw new Error('获取行程详情失败');
-        }
+        setError(null);
 
+        const response = await apiClient.get(`/api/drives/${driveId}`);
         const data = await response.json();
+
         setDrive(data.drive);
         setPositions(data.positions);
-        setError(null);
+        fetchedDriveIdRef.current = driveId;
       } catch (err) {
-        setError(err instanceof Error ? err.message : '未知错误');
+        console.error('获取行程详情失败:', err);
+        setError('获取行程详情失败');
       } finally {
         setLoading(false);
+        isLoadingRef.current = false;
       }
     };
 
-    if (driveId) {
-      fetchDriveDetail();
-    }
+    fetchDriveDetail();
   }, [driveId]);
 
   // 页面加载时滚动到顶部
