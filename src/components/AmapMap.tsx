@@ -50,7 +50,6 @@ const AmapMap: React.FC<AmapMapProps> = ({
     return convertToMapPoint(lat, lng);
   };
 
-  // 地图初始化 useEffect - 只在组件挂载时执行一次
   useEffect(() => {
     const loadAmapMap = async () => {
       try {
@@ -130,6 +129,64 @@ const AmapMap: React.FC<AmapMapProps> = ({
           console.warn('添加工具条控件失败:', err);
         }
 
+        // 添加标记点
+        if (markers && markers.length > 0) {
+          markers.forEach((marker) => {
+            try {
+              const safeMarker = safeMapPoint(marker);
+              const mapMarker = new AMap.Marker({
+                position: [safeMarker.lng, safeMarker.lat],
+              });
+              map.add(mapMarker);
+            } catch (err) {
+              console.warn('添加标记点失败:', err);
+            }
+          });
+        }
+
+        // 添加路径
+        if (paths && paths.length > 0) {
+          const allPoints: number[][] = [];
+          
+          paths.forEach((path) => {
+            try {
+              if (!path.points || path.points.length === 0) return;
+              
+              const points = path.points
+                .filter(p => p && typeof p.lat === 'number' && typeof p.lng === 'number')
+                .map(p => {
+                  const safePoint = safeMapPoint(p);
+                  const point = [safePoint.lng, safePoint.lat];
+                  allPoints.push(point);
+                  return point;
+                });
+
+              if (points.length > 1) {
+                const polyline = new AMap.Polyline({
+                  path: points,
+                  strokeColor: path.color || '#FF6B6B',
+                  strokeWeight: path.weight || 3,
+                  strokeOpacity: path.opacity || 0.8,
+                  lineJoin: 'round',
+                  lineCap: 'round',
+                });
+                map.add(polyline);
+              }
+            } catch (err) {
+              console.warn('添加路径失败:', err);
+            }
+          });
+
+          // 如果有路径，自动调整视野
+          try {
+            if (allPoints.length > 0) {
+              map.setFitView(null, false, [20, 20, 20, 20]);
+            }
+          } catch (err) {
+            console.warn('调整视野失败:', err);
+          }
+        }
+
         setLoading(false);
         setError(null);
 
@@ -156,105 +213,7 @@ const AmapMap: React.FC<AmapMapProps> = ({
         // 忽略清理错误
       }
     };
-  }, []); // 只在组件挂载时执行一次
-
-  // 更新地图中心和缩放级别
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-
-    try {
-      const safeCenter = safeMapPoint(center);
-      mapInstanceRef.current.setCenter([safeCenter.lng, safeCenter.lat]);
-      mapInstanceRef.current.setZoom(zoom);
-    } catch (err) {
-      console.warn('更新地图中心和缩放失败:', err);
-    }
-  }, [center, zoom]);
-
-  // 更新标记点
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-
-    try {
-      // 清除现有标记点
-      mapInstanceRef.current.clearMap();
-
-      // 添加新的标记点
-      if (markers && markers.length > 0) {
-        markers.forEach((marker) => {
-          try {
-            const safeMarker = safeMapPoint(marker);
-            const mapMarker = new window.AMap.Marker({
-              position: [safeMarker.lng, safeMarker.lat],
-            });
-            mapInstanceRef.current.add(mapMarker);
-          } catch (err) {
-            console.warn('添加标记点失败:', err);
-          }
-        });
-      }
-    } catch (err) {
-      console.warn('更新标记点失败:', err);
-    }
-  }, [markers]);
-
-  // 更新路径
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-
-    try {
-      // 清除现有路径（保留标记点）
-      const overlays = mapInstanceRef.current.getAllOverlays('polyline');
-      if (overlays && overlays.length > 0) {
-        mapInstanceRef.current.remove(overlays);
-      }
-
-      // 添加新的路径
-      if (paths && paths.length > 0) {
-        const allPoints: number[][] = [];
-        
-        paths.forEach((path) => {
-          try {
-            if (!path.points || path.points.length === 0) return;
-            
-            const points = path.points
-              .filter(p => p && typeof p.lat === 'number' && typeof p.lng === 'number')
-              .map(p => {
-                const safePoint = safeMapPoint(p);
-                const point = [safePoint.lng, safePoint.lat];
-                allPoints.push(point);
-                return point;
-              });
-
-            if (points.length > 1) {
-              const polyline = new window.AMap.Polyline({
-                path: points,
-                strokeColor: path.color || '#FF6B6B',
-                strokeWeight: path.weight || 3,
-                strokeOpacity: path.opacity || 0.8,
-                lineJoin: 'round',
-                lineCap: 'round',
-              });
-              mapInstanceRef.current.add(polyline);
-            }
-          } catch (err) {
-            console.warn('添加路径失败:', err);
-          }
-        });
-
-        // 如果有路径，自动调整视野
-        try {
-          if (allPoints.length > 0) {
-            mapInstanceRef.current.setFitView(null, false, [20, 20, 20, 20]);
-          }
-        } catch (err) {
-          console.warn('调整视野失败:', err);
-        }
-      }
-    } catch (err) {
-      console.warn('更新路径失败:', err);
-    }
-  }, [paths]);
+  }, [center, zoom, paths, markers, onMapReady]);
 
   if (error) {
     return (
