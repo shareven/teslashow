@@ -204,11 +204,12 @@ const ChargingPage: React.FC = () => {
       const data = await response.json();
       
       setChargingSessions(prev => {
-        const incoming = data.chargingProcesses || [];
-        const merged = pageNum === 1 ? incoming : [...prev, ...incoming];
+        const incoming: ChargingProcess[] = Array.isArray(data.chargingProcesses) ? (data.chargingProcesses as ChargingProcess[]) : [];
+        const merged: ChargingProcess[] = pageNum === 1 ? incoming : [...prev, ...incoming];
         const seen = new Set<number>();
-        return merged.filter((c) => {
-          const id = c.id as number;
+        return merged.filter((c: ChargingProcess) => {
+          const id = c.id as number | undefined;
+          if (id === undefined || id === null) return true;
           if (seen.has(id)) return false;
           seen.add(id);
           return true;

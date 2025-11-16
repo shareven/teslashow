@@ -205,10 +205,12 @@ const DrivesPage: React.FC = () => {
       const data = await response.json();
       
       setDrives(prev => {
-        const merged = pageNum === 1 ? data.drives : [...prev, ...data.drives];
+        const incoming: Drive[] = Array.isArray(data.drives) ? (data.drives as Drive[]) : [];
+        const merged: Drive[] = pageNum === 1 ? incoming : [...prev, ...incoming];
         const seen = new Set<number>();
-        return merged.filter((d) => {
-          const id = d.id as number;
+        return merged.filter((d: Drive) => {
+          const id = d.id as number | undefined;
+          if (id === undefined || id === null) return true;
           if (seen.has(id)) return false;
           seen.add(id);
           return true;
