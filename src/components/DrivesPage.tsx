@@ -8,7 +8,6 @@ import {
   Chip,
   Box,
   Button,
-  Pagination,
   CircularProgress,
   Alert,
   Stack,
@@ -16,7 +15,6 @@ import {
   Avatar,
   Paper,
   Container,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import {
@@ -96,7 +94,6 @@ const formatAddress = (address: string): string => {
 const DrivesPage: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { currentTheme } = useThemeColor();
   
   const [drives, setDrives] = useState<Drive[]>([]);
@@ -105,6 +102,10 @@ const DrivesPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
+  const pagingRef = React.useRef<boolean>(false);
   
   // 时间过滤状态 - 使用默认值初始化，避免hydration错误
   const [selectedFilter, setSelectedFilter] = useState<TimeFilterType>(() => 
@@ -154,7 +155,11 @@ const DrivesPage: React.FC = () => {
   
   const fetchDrives = async (pageNum: number) => {
     try {
-      setLoading(true);
+      if (pageNum === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
       
       // 获取时间范围
       let startDate: string | null = null;
@@ -199,14 +204,29 @@ const DrivesPage: React.FC = () => {
       const response = await apiClient.get(url);
       const data = await response.json();
       
-      setDrives(data.drives);
+      setDrives(prev => {
+        const merged = pageNum === 1 ? data.drives : [...prev, ...data.drives];
+        const seen = new Set<number>();
+        return merged.filter((d) => {
+          const id = d.id as number;
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+      });
       setTotalPages(data.pagination.totalPages);
       setTotalCount(data.pagination.total);
+      setHasNext(!!data.pagination.hasNext);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
-      setLoading(false);
+      if (pageNum === 1) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+        pagingRef.current = false;
+      }
     }
   };
 
@@ -223,9 +243,38 @@ const DrivesPage: React.FC = () => {
     }
   }, [isInitialized, page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-  };
+  useEffect(() => {
+    if (!loading && isInitialized) {
+      try {
+        const shouldRestore = sessionStorage.getItem('restore:/') === '1';
+        if (shouldRestore) {
+          const y = Number(sessionStorage.getItem('scroll:/') || '0');
+          window.scrollTo({ top: y, behavior: 'auto' });
+          sessionStorage.removeItem('restore:/');
+        }
+      } catch {}
+    }
+  }, [loading, isInitialized]);
+
+  // 监听底部触发器以加载下一页
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !loadingMore && hasNext && !pagingRef.current) {
+          pagingRef.current = true;
+          setPage((prev) => prev + 1);
+        }
+      },
+      { root: null, rootMargin: '200px', threshold: 0 }
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasNext, loadingMore]);
 
   const handleFilterChange = (filter: TimeFilterType) => {
     setSelectedFilter(filter);
@@ -254,6 +303,11 @@ const DrivesPage: React.FC = () => {
   };
 
   const handleDriveClick = (driveId: number) => {
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('scroll:/', String(window.scrollY || 0));
+      } catch {}
+    }
     router.push(`/drives/${driveId}`);
   };
 
@@ -757,56 +811,11 @@ const DrivesPage: React.FC = () => {
         </Paper>
       )}
 
-      {/* 分页 */}
-      {totalPages > 1 && (
-        <Box 
-          display="flex" 
-          justifyContent="center" 
-          mt={{ xs: 3, sm: 4 }}
-          mb={{ xs: 2, sm: 3 }}
-          px={{ xs: 1, sm: 0 }}
-        >
-          <Paper
-            sx={{
-              p: { xs: 1.5, sm: 2 },
-              borderRadius: 3,
-              border: '1px solid',
-              borderColor: 'divider',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-            }}
-            className="fade-in"
-            style={{ animationDelay: '0.5s' }}
-          >
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={handlePageChange}
-              color="primary"
-              size={isMobile ? "medium" : "large"}
-              sx={{
-                '& .MuiPaginationItem-root': {
-                  borderRadius: 2,
-                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                  minWidth: { xs: 36, sm: 40 },
-                  height: { xs: 36, sm: 40 },
-                  margin: { xs: '0 2px', sm: '0 4px' },
-                  '&:hover': {
-                    bgcolor: 'primary.50',
-                  },
-                  '&.Mui-selected': {
-                    background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
-                    color: 'white',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
-                    },
-                  },
-                },
-                '& .MuiPaginationItem-ellipsis': {
-                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                },
-              }}
-            />
-          </Paper>
+      {/* 加载更多触发器与加载状态 */}
+      <Box ref={loadMoreRef} sx={{ height: 1 }} />
+      {loadingMore && (
+        <Box display="flex" justifyContent="center" mt={{ xs: 3, sm: 4 }} mb={{ xs: 2, sm: 3 }}>
+          <CircularProgress size={24} />
         </Box>
       )}
     </Container>

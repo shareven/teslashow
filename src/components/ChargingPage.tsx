@@ -8,7 +8,6 @@ import {
   Chip,
   Box,
   Button,
-  Pagination,
   CircularProgress,
   Alert,
   Stack,
@@ -16,7 +15,6 @@ import {
   Avatar,
   Paper,
   Container,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import {
@@ -98,7 +96,6 @@ const formatAddress = (address: string): string => {
 const ChargingPage: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { currentTheme } = useThemeColor();
   
   const [chargingSessions, setChargingSessions] = useState<ChargingProcess[]>([]);
@@ -107,6 +104,10 @@ const ChargingPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
+  const pagingRef = React.useRef<boolean>(false);
   
   // 时间过滤状态 - 使用默认值初始化，避免hydration错误
   const [selectedFilter, setSelectedFilter] = useState<TimeFilterType>(() => 
@@ -156,7 +157,11 @@ const ChargingPage: React.FC = () => {
   
   const fetchChargingSessions = async (pageNum: number) => {
     try {
-      setLoading(true);
+      if (pageNum === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
       
       // 获取时间范围
       let startDate: string | null = null;
@@ -198,14 +203,30 @@ const ChargingPage: React.FC = () => {
       const response = await apiClient.get(url);
       const data = await response.json();
       
-      setChargingSessions(data.chargingProcesses || []);
+      setChargingSessions(prev => {
+        const incoming = data.chargingProcesses || [];
+        const merged = pageNum === 1 ? incoming : [...prev, ...incoming];
+        const seen = new Set<number>();
+        return merged.filter((c) => {
+          const id = c.id as number;
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+      });
       setTotalPages(data.pagination?.totalPages || 1);
       setTotalCount(data.pagination?.total || 0);
+      setHasNext(!!data.pagination?.hasNext);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
     } finally {
-      setLoading(false);
+      if (pageNum === 1) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+        pagingRef.current = false;
+      }
     }
   };
 
@@ -240,14 +261,33 @@ const ChargingPage: React.FC = () => {
     setPage(1);
   };
 
-  // 处理分页变化
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-    fetchChargingSessions(value);
-  };
+  // 监听底部触发器以加载下一页
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !loadingMore && hasNext && !pagingRef.current) {
+          pagingRef.current = true;
+          setPage((prev) => prev + 1);
+        }
+      },
+      { root: null, rootMargin: '200px', threshold: 0 }
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasNext, loadingMore]);
 
   // 处理充电记录点击
   const handleChargingClick = (chargingId: number) => {
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('scroll:/charging', String(window.scrollY || 0));
+      } catch {}
+    }
     router.push(`/charging/${chargingId}`);
   };
 
@@ -263,6 +303,19 @@ const ChargingPage: React.FC = () => {
       fetchChargingSessions(page);
     }
   }, [isInitialized, page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
+
+  useEffect(() => {
+    if (!loading && isInitialized) {
+      try {
+        const shouldRestore = sessionStorage.getItem('restore:/charging') === '1';
+        if (shouldRestore) {
+          const y = Number(sessionStorage.getItem('scroll:/charging') || '0');
+          window.scrollTo({ top: y, behavior: 'auto' });
+          sessionStorage.removeItem('restore:/charging');
+        }
+      } catch {}
+    }
+  }, [loading, isInitialized]);
 
   // 渲染充电记录卡片
   const renderChargingCard = (charging: ChargingProcess, index: number) => {
@@ -674,16 +727,11 @@ const ChargingPage: React.FC = () => {
             {chargingSessions.map((charging, index) => renderChargingCard(charging, index))}
           </Stack>
           
-          {/* 分页 */}
-          {totalPages > 1 && (
-            <Box display="flex" justifyContent="center" mt={4}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={handlePageChange}
-                color="primary"
-                size={isMobile ? 'small' : 'medium'}
-              />
+          {/* 加载更多触发器 */}
+          <Box ref={loadMoreRef} sx={{ height: 1 }} />
+          {loadingMore && (
+            <Box display="flex" justifyContent="center" mt={3}>
+              <CircularProgress size={24} />
             </Box>
           )}
         </>

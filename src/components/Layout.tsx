@@ -48,6 +48,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMenuAnchor, setMobileMenuAnchor] = React.useState<null | HTMLElement>(null);
   const [themeMenuAnchor, setThemeMenuAnchor] = React.useState<null | HTMLElement>(null);
+  const prevPathRef = React.useRef<string>(pathname);
+  const isPopRef = React.useRef<boolean>(false);
 
   // 如果是登录页面，直接返回子组件，不显示导航栏
   if (pathname === '/login') {
@@ -112,6 +114,41 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { label: '足迹', value: '/footprint', icon: <Place /> },
     { label: '充电', value: '/charging', icon: <BatteryChargingFull /> },
   ];
+
+  React.useEffect(() => {
+    const prev = prevPathRef.current;
+    if (prev === pathname) return;
+    if (typeof window !== 'undefined') {
+      const isDrivesList = pathname === '/';
+      const isChargingList = pathname === '/charging';
+      if (isDrivesList && prev && prev.startsWith('/drives/') && isPopRef.current) {
+        try {
+          sessionStorage.setItem('restore:/', '1');
+        } catch {}
+      } else if (isChargingList && prev && prev.startsWith('/charging/') && isPopRef.current) {
+        try {
+          sessionStorage.setItem('restore:/charging', '1');
+        } catch {}
+      } else {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+      try {
+        sessionStorage.setItem('last_path', prev || '');
+      } catch {}
+    }
+    isPopRef.current = false;
+    prevPathRef.current = pathname;
+  }, [pathname]);
+
+  React.useEffect(() => {
+    const handler = () => {
+      isPopRef.current = true;
+    };
+    window.addEventListener('popstate', handler);
+    return () => {
+      window.removeEventListener('popstate', handler);
+    };
+  }, []);
 
   return (
     <>
