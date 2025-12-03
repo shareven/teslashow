@@ -2,7 +2,8 @@
 # FROM alpine:latest
 # RUN apk add --no-cache --update nodejs npm
 
-FROM node:22-alpine
+FROM shareven/node_base:latest
+
 RUN apk add --no-cache libc6-compat
 
 WORKDIR /teslashow
