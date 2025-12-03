@@ -2,7 +2,8 @@
 # FROM alpine:latest
 # RUN apk add --no-cache --update nodejs npm
 
-FROM shareven/node_base:latest
+FROM node:22-alpine
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /teslashow
 COPY package.json /teslashow/
@@ -18,7 +19,7 @@ COPY . /teslashow/
 # 如果需要使用中国时区，可以改为：
 ENV TZ=Asia/Shanghai
 
-LABEL version="2.4"
+LABEL version="2.5"
 LABEL description="TeslaShow"
 # 暴露端口
 EXPOSE 3000
