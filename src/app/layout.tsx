@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Layout from '@/components/Layout';
 import { ThemeColorProvider } from '@/lib/ThemeColorProvider';
 import { AuthProvider } from '@/lib/AuthProvider';
+import { VehicleProvider } from '@/lib/VehicleProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -48,7 +49,9 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <ThemeColorProvider>
-            <Layout>{children}</Layout>
+            <VehicleProvider>
+              <Layout>{children}</Layout>
+            </VehicleProvider>
           </ThemeColorProvider>
         </AuthProvider>
       </body>

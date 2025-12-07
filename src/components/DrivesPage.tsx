@@ -34,6 +34,7 @@ import apiClient from '@/lib/apiClient';
 import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
 import TimeFilter from '@/components/TimeFilter';
+import { useVehicle } from '@/lib/VehicleProvider';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 
@@ -95,6 +96,7 @@ const DrivesPage: React.FC = () => {
   const router = useRouter();
   const theme = useTheme();
   const { currentTheme } = useThemeColor();
+  const { selectedCarId } = useVehicle();
   
   const [drives, setDrives] = useState<Drive[]>([]);
   const [loading, setLoading] = useState(true);
@@ -200,6 +202,9 @@ const DrivesPage: React.FC = () => {
       if (endDate) {
         url += `&end_date=${endDate}`;
       }
+      if (selectedCarId !== null) {
+        url += `&car_id=${selectedCarId}`;
+      }
       
       const response = await apiClient.get(url);
       const data = await response.json();
@@ -243,7 +248,13 @@ const DrivesPage: React.FC = () => {
     if (isInitialized) {
       fetchDrives(page);
     }
-  }, [isInitialized, page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
+  }, [isInitialized, page, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime, selectedCarId]);
+
+  useEffect(() => {
+    if (isInitialized) {
+      setPage(1);
+    }
+  }, [selectedCarId, isInitialized]);
 
   useEffect(() => {
     if (!loading && isInitialized) {

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     // 时间过滤参数
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
+    const carIdParam = searchParams.get('car_id');
     
     if (startDate || endDate) {
       console.log(`📅 时间过滤: start=${startDate}, end=${endDate}`);
@@ -40,6 +41,12 @@ export async function GET(request: NextRequest) {
     if (endDate) {
       whereConditions.push(`cp.start_date AT TIME ZONE 'UTC' <= $${paramIndex}::timestamp AT TIME ZONE 'UTC'`);
       timeParams.push(endDate);
+      paramIndex++;
+    }
+
+    if (carIdParam) {
+      whereConditions.push(`cp.car_id = $${paramIndex}`);
+      timeParams.push(carIdParam);
       paramIndex++;
     }
 

@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
+    const carIdParam = searchParams.get('car_id');
 
     let whereClause = 'WHERE d.end_date IS NOT NULL';
     const queryParams: any[] = [];
@@ -26,6 +27,10 @@ export async function GET(request: NextRequest) {
     if (endDate) {
       whereClause += ` AND d.start_date AT TIME ZONE 'UTC' <= $${queryParams.length + 1}::timestamp AT TIME ZONE 'UTC'`;
       queryParams.push(endDate);
+    }
+    if (carIdParam) {
+      whereClause += ` AND d.car_id = $${queryParams.length + 1}`;
+      queryParams.push(carIdParam);
     }
 
     // 获取统计数据，包含车型信息用于能耗计算
@@ -63,6 +68,10 @@ export async function GET(request: NextRequest) {
     if (endDate) {
       chargingQuery += ` AND cp.start_date AT TIME ZONE 'UTC' <= $${chargingParams.length + 1}::timestamp AT TIME ZONE 'UTC'`;
       chargingParams.push(endDate);
+    }
+    if (carIdParam) {
+      chargingQuery += ` AND cp.car_id = $${chargingParams.length + 1}`;
+      chargingParams.push(carIdParam);
     }
 
     // 获取轨迹数据（采样以提高性能）

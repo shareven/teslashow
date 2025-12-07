@@ -36,10 +36,12 @@ import {
 } from '@/utils';
 import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 import apiClient from '@/lib/apiClient';
+import { useVehicle } from '@/lib/VehicleProvider';
 
 const FootprintPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { selectedCarId } = useVehicle();
   
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -102,6 +104,9 @@ const FootprintPage: React.FC = () => {
       if (endDate) {
         params.append('end_date', endDate);
       }
+      if (selectedCarId !== null) {
+        params.append('car_id', String(selectedCarId));
+      }
       
       if (params.toString()) {
         url += `?${params}`;
@@ -131,7 +136,9 @@ const FootprintPage: React.FC = () => {
     if (isInitialized) {
       fetchFootprintData();
     }
-  }, [isInitialized, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime]);
+  }, [isInitialized, selectedFilter, useCurrentTime, customStartDate, customEndDate, customStartTime, customEndTime, selectedCarId]);
+
+  
 
   const handleFilterChange = (filter: TimeFilterType) => {
     setSelectedFilter(filter);

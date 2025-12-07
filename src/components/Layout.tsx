@@ -2,7 +2,7 @@
 
 import React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
-import { 
+import {
   AppBar, 
   Toolbar, 
   Typography, 
@@ -26,13 +26,16 @@ import {
   Logout,
   Menu as MenuIcon,
   Palette,
+  DirectionsCar,
 } from '@mui/icons-material';
 import TeslaShowLogo from './TeslaShowLogo';
 import { useRouter, usePathname } from 'next/navigation';
 import ThemeColorSelector from './ThemeColorSelector';
+import VehicleSelector from './VehicleSelector';
 import AuthGuard from './AuthGuard';
 import { useAuth } from '@/lib/AuthProvider';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
+import { useVehicle } from '@/lib/VehicleProvider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -45,9 +48,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const { logout } = useAuth();
   const { currentTheme, setThemeColor, availableColors } = useThemeColor();
+  const { cars, selectedCarId, setSelectedCarId } = useVehicle();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileMenuAnchor, setMobileMenuAnchor] = React.useState<null | HTMLElement>(null);
   const [themeMenuAnchor, setThemeMenuAnchor] = React.useState<null | HTMLElement>(null);
+  const [vehicleMenuAnchor, setVehicleMenuAnchor] = React.useState<null | HTMLElement>(null);
   const prevPathRef = React.useRef<string>(pathname);
   const isPopRef = React.useRef<boolean>(false);
 
@@ -102,6 +107,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleThemeMenuClose = () => {
     setThemeMenuAnchor(null);
   };
+  const handleVehicleMenuClose = () => {
+    setVehicleMenuAnchor(null);
+  };
+
 
   const handleColorSelect = (colorId: string) => {
     setThemeColor(colorId);
@@ -272,14 +281,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               )}
               
               {isMobile ? (
-                // 移动端：菜单按钮
                 <IconButton
                   onClick={handleMobileMenuOpen}
                   sx={{
                     color: 'text.secondary',
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                    },
+                    '&:hover': { bgcolor: 'action.hover' },
                   }}
                 >
                   <MenuIcon />
@@ -288,6 +294,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 // 桌面端：主题选择器和用户菜单
                 <>
                   <ThemeColorSelector />
+                  <VehicleSelector />
                   <IconButton
                     onClick={handleUserMenuOpen}
                     sx={{
@@ -361,6 +368,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Palette fontSize="small" />
             </ListItemIcon>
             <ListItemText>主题色</ListItemText>
+          </MenuItem>
+
+          <MenuItem 
+            onClick={(e) => {
+              e.stopPropagation();
+              setVehicleMenuAnchor(e.currentTarget);
+            }}
+          >
+            <ListItemIcon>
+              <DirectionsCar fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>车辆选择</ListItemText>
           </MenuItem>
           
           <MenuItem onClick={handleMobileLogout}>
@@ -466,6 +485,79 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </MenuItem>
           ))}
         </Menu>
+
+        <Menu
+          anchorEl={vehicleMenuAnchor}
+          open={Boolean(vehicleMenuAnchor)}
+          onClose={handleVehicleMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              mt: 1,
+              borderRadius: 2,
+              minWidth: 200,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              border: '1px solid',
+              borderColor: 'divider',
+            },
+          }}
+        >
+          <Box sx={{ p: 2, pb: 1 }}>
+            <Typography 
+              variant="subtitle2" 
+              color="text.secondary"
+              sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+            >
+              选择车辆
+            </Typography>
+          </Box>
+          <MenuItem
+            onClick={() => { setSelectedCarId(null); handleVehicleMenuClose(); }}
+            sx={{ px: 2, py: 1.5 }}
+          >
+            <Box display="flex" alignItems="center" gap={2} width="100%">
+              <DirectionsCar sx={{ color: selectedCarId === null ? 'primary.main' : 'text.secondary' }} />
+              <Typography 
+                variant="body2"
+                sx={{ fontWeight: selectedCarId === null ? 600 : 400, color: selectedCarId === null ? 'primary.main' : 'text.primary' }}
+              >
+                所有车辆
+              </Typography>
+              {selectedCarId === null && (
+                <Box sx={{ ml: 'auto', width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main' }} />
+              )}
+            </Box>
+          </MenuItem>
+          {cars.map((c) => {
+            const isSelected = selectedCarId === c.id;
+            const label = c.name || c.model || `#${c.id}`;
+            return (
+              <MenuItem key={c.id} onClick={() => { setSelectedCarId(c.id); handleVehicleMenuClose(); }} sx={{ px: 2, py: 1.5 }}>
+                <Box display="flex" alignItems="center" gap={2} width="100%">
+                  <DirectionsCar sx={{ color: isSelected ? 'primary.main' : 'text.secondary' }} />
+                  <Typography 
+                    variant="body2"
+                    sx={{ fontWeight: isSelected ? 600 : 400, color: isSelected ? 'primary.main' : 'text.primary' }}
+                  >
+                    {label}
+                  </Typography>
+                  {isSelected && (
+                    <Box sx={{ ml: 'auto', width: 6, height: 6, borderRadius: '50%', bgcolor: 'primary.main' }} />
+                  )}
+                </Box>
+              </MenuItem>
+            );
+          })}
+        </Menu>
+
+        
         
         {/* 主内容区域 */}
         <Box 
