@@ -71,6 +71,7 @@ export async function GET(
           battery_level,
           outside_temp,
           inside_temp,
+          elevation,
           ROW_NUMBER() OVER (ORDER BY date) as row_num,
           COUNT(*) OVER () as total_count
         FROM positions 
@@ -90,7 +91,8 @@ export async function GET(
         ideal_battery_range_km,
         battery_level,
         outside_temp,
-        inside_temp
+        inside_temp,
+        elevation
       FROM sampled_positions
       WHERE 
         row_num = 1 OR 

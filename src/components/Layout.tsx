@@ -55,16 +55,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [vehicleMenuAnchor, setVehicleMenuAnchor] = React.useState<null | HTMLElement>(null);
   const prevPathRef = React.useRef<string>(pathname);
   const isPopRef = React.useRef<boolean>(false);
+  const isLogin = pathname === '/login';
 
-  // 如果是登录页面，直接返回子组件，不显示导航栏
-  if (pathname === '/login') {
-    return (
-      <>
-        <CssBaseline />
-        {children}
-      </>
-    );
-  }
+  // 注意：不在渲染前提前 return，避免改变钩子调用顺序
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     router.push(newValue);
@@ -162,28 +155,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <>
       <CssBaseline />
-      <Box sx={{ 
-        flexGrow: 1, 
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-      }}>
-        {/* 顶部导航栏 */}
-        <AppBar 
-          position="sticky" 
-          elevation={0}
-          sx={{
-            bgcolor: 'background.paper',
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            color: 'text.primary',
-          }}
-        >
-          <Toolbar 
-            sx={{ 
-              px: { xs: 2, sm: 3 },
-              minHeight: { xs: 64, sm: 72 },
+      {isLogin ? (
+        // 登录页：不显示导航和守卫
+        <>{children}</>
+      ) : (
+        <Box sx={{ 
+          flexGrow: 1, 
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+        }}>
+          {/* 顶部导航栏 */}
+          <AppBar 
+            position="sticky" 
+            elevation={0}
+            sx={{
+              bgcolor: 'background.paper',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              color: 'text.primary',
             }}
           >
+            <Toolbar 
+              sx={{ 
+                px: { xs: 2, sm: 3 },
+                minHeight: { xs: 64, sm: 72 },
+              }}
+            >
             {/* Logo和标题 */}
             <Box display="flex" alignItems="center" gap={2} sx={{ flexGrow: 1 }}>
               <Avatar 
@@ -309,10 +306,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </>
               )}
             </Box>
-          </Toolbar>
-        </AppBar>
+            </Toolbar>
+          </AppBar>
         
-        {/* 桌面端用户菜单 */}
+          {/* 桌面端用户菜单 */}
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
@@ -334,7 +331,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </MenuItem>
         </Menu>
 
-        {/* 移动端菜单 */}
+          {/* 移动端菜单 */}
         <Menu
           anchorEl={mobileMenuAnchor}
           open={Boolean(mobileMenuAnchor)}
@@ -390,8 +387,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </MenuItem>
         </Menu>
 
-        {/* 主题颜色选择菜单 */}
-        <Menu
+          {/* 主题颜色选择菜单 */}
+          <Menu
           anchorEl={themeMenuAnchor}
           open={Boolean(themeMenuAnchor)}
           onClose={handleThemeMenuClose}
@@ -484,7 +481,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Box>
             </MenuItem>
           ))}
-        </Menu>
+          </Menu>
 
         <Menu
           anchorEl={vehicleMenuAnchor}
@@ -557,22 +554,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           })}
         </Menu>
 
-        
-        
-        {/* 主内容区域 */}
-        <Box 
-          component="main"
-          sx={{ 
-            flexGrow: 1,
-            py: { xs: 2, sm: 3 },
-            minHeight: 'calc(100vh - 64px)',
-          }}
-        >
-          <AuthGuard>
-            {children}
-          </AuthGuard>
+          {/* 主内容区域 */}
+          <Box 
+            component="main"
+            sx={{ 
+              flexGrow: 1,
+              py: { xs: 2, sm: 3 },
+              minHeight: 'calc(100vh - 64px)',
+            }}
+          >
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+          </Box>
         </Box>
-      </Box>
+      )}
     </>
   );
 };

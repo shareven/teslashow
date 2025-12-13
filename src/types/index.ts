@@ -37,6 +37,7 @@ export interface Position {
   battery_level: number;
   outside_temp: number;
   inside_temp: number;
+  elevation?: number;
   drive_id: number;
 }
 

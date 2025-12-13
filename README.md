@@ -10,6 +10,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Material-UI](https://img.shields.io/badge/Material--UI-7-blue)](https://mui.com/)
 
+最新版本： v2.7
+
 [English](README_EN.md) | 中文
 
 </div>
@@ -134,7 +136,7 @@ services:
       - all
 
   database:
-    image: postgres:17-trixie
+    image: postgres:18-trixie
     restart: always
     # ports:
       # - 5433:5432  # 宿主机端口:容器端口5433是为测试使用，在teslashow项目在docker中还是使用5432
@@ -143,7 +145,7 @@ services:
       - POSTGRES_PASSWORD=password #insert your secure database password!
       - POSTGRES_DB=teslamate
     volumes:
-      - ./teslamate-db:/var/lib/postgresql/data
+      - ./teslamate-db:/var/lib/postgresql
 
   grafana:
     image: teslamate/grafana:latest
@@ -250,6 +252,10 @@ docker-compose up -d
 |---------|------|------|
 | `NEXT_PUBLIC_AMAP_API_KEY` | 高德地图 API 密钥 | ✅ |
 | `NEXT_PUBLIC_AMAP_SECURITY_KEY` | 高德地图安全密钥 | ✅ |
+
+## 升级PostgreSQL数据库版本
+
+参考 [TeslaMate 数据库升级指南](https://docs.teslamate.org/docs/maintenance/upgrading_postgres)
 
 ## 🤝 贡献指南
 

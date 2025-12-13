@@ -10,6 +10,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Material-UI](https://img.shields.io/badge/Material--UI-7-blue)](https://mui.com/)
 
+The new version v2.7 is now available!
+
 English | [中文](README.md)
 
 </div>
@@ -134,7 +136,7 @@ services:
       - all
 
   database:
-    image: postgres:17-trixie
+    image: postgres:18-trixie
     restart: always
    #  ports:
       # - 5433:5432  # Host port:Container port 5433 is for testing, teslashow project in docker still uses 5432
@@ -143,7 +145,7 @@ services:
       - POSTGRES_PASSWORD=password #insert your secure database password!
       - POSTGRES_DB=teslamate
     volumes:
-      - ./teslamate-db:/var/lib/postgresql/data
+      - ./teslamate-db:/var/lib/postgresql
 
   grafana:
     image: teslamate/grafana:latest
@@ -251,6 +253,10 @@ The configuration file has set up data volume mounts to ensure data persistence:
 |---------------------|-------------|----------|
 | `NEXT_PUBLIC_AMAP_API_KEY` | Amap API key | ✅ |
 | `NEXT_PUBLIC_AMAP_SECURITY_KEY` | Amap security key | ✅ |
+
+## Upgrading PostgreSQL to a new major version
+
+Click [TeslaMate: upgrading PostgreSQL to a new major version](https://docs.teslamate.org/docs/maintenance/upgrading_postgres)
 
 ## 🤝 Contributing
 
