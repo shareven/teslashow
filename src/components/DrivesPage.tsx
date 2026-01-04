@@ -29,7 +29,7 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { Drive, TimeFilter as TimeFilterType } from '@/types';
-import { calculateEnergyConsumption, formatEnergyConsumption, formatDateRange, timeFilterOptions, getDateRange } from '@/utils';
+import { formatEnergyConsumption, formatDateRange, timeFilterOptions, getDateRange } from '@/utils';
 import apiClient from '@/lib/apiClient';
 import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 import { useThemeColor } from '@/lib/ThemeColorProvider';
@@ -685,11 +685,9 @@ const DrivesPage: React.FC = () => {
                         fontSize={{ xs: '0.75rem', sm: '0.875rem' }}
                         color="warning.main"
                       >
-                        {formatEnergyConsumption(calculateEnergyConsumption(
-                          safeNumber(drive.start_ideal_range_km) - safeNumber(drive.end_ideal_range_km),
-                          safeNumber(drive.distance),
-                          drive.car_model || 'Model 3'
-                        ))}
+                        {
+                        formatEnergyConsumption( drive.avg_consumption )
+                        }
                       </Typography>
                     </Box>
                   </Box>

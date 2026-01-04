@@ -40,7 +40,6 @@ import {
   formatSpeed,
   formatPower,
   calculateAverageSpeed,
-  calculateEnergyConsumption,
   formatEnergyConsumption,
   safeNumber,
   safeToFixed,
@@ -325,11 +324,7 @@ const DriveDetailPage: React.FC = () => {
 
   const averageSpeed = calculateAverageSpeed(safeNumber(drive.distance), safeNumber(drive.duration_min));
   const energyUsed = safeNumber(drive.start_ideal_range_km) - safeNumber(drive.end_ideal_range_km);
-  const energyConsumption = calculateEnergyConsumption(
-    energyUsed,
-    safeNumber(drive.distance),
-    drive.car_model
-  );
+  const energyConsumption = drive.avg_consumption;
 
   return (
     <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>

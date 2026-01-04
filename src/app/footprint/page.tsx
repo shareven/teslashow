@@ -33,6 +33,7 @@ import {
   convertToMapPoint,
   timeFilterOptions,
   getDateRange,
+  formatEnergyConsumption,
 } from '@/utils';
 import { getStoredTimeFilter, saveTimeFilter, getDefaultTimeFilter } from '@/utils/timeFilterMemory';
 import apiClient from '@/lib/apiClient';
@@ -399,7 +400,7 @@ const FootprintPage: React.FC = () => {
                                 fontSize: { xs: '0.9rem', sm: '1.25rem' },
                               }}
                             >
-                              {statistics.averageEfficiency.toFixed(0)} Wh/km
+                              {formatEnergyConsumption(statistics.averageEfficiency)}
                             </Typography>
                           </Box>
                         </Grid>

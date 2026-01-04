@@ -19,6 +19,7 @@ export interface Drive {
   power_min: number;
   start_ideal_range_km: number;
   end_ideal_range_km: number;
+  avg_consumption: number;
   car_id: number;
   car_model?: string;
   car_name?: string;

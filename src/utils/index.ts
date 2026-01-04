@@ -83,48 +83,10 @@ export const calculateAverageSpeed = (distance: number, duration: number): numbe
   return distance / (duration / 60); // km/h
 };
 
-// 计算能耗 (Wh/km)
-// Tesla车型的电池容量参考值 (kWh)
-const TESLA_BATTERY_CAPACITIES: { [key: string]: number } = {
-  'Model S': 100, // Model S Long Range
-  'Model 3': 75,  // Model 3 Long Range
-  'Model X': 100, // Model X Long Range
-  'Model Y': 75,  // Model Y Long Range
-  'default': 75   // 默认值
-};
-
-export const calculateEnergyConsumption = (
-  rangeUsed: number, // 消耗的续航里程 (km)
-  distance: number,  // 实际行驶距离 (km)
-  carModel?: string  // 车型
-): number => {
-  if (distance === 0) return 0;
-  
-  // 获取电池容量
-  const batteryCapacity = TESLA_BATTERY_CAPACITIES[carModel || 'default'] || TESLA_BATTERY_CAPACITIES['default'];
-  
-  // Tesla的EPA续航里程参考值 (km)
-  const EPA_RANGES: { [key: string]: number } = {
-    'Model S': 652,  // Model S Long Range EPA续航
-    'Model 3': 568,  // Model 3 Long Range EPA续航
-    'Model X': 560,  // Model X Long Range EPA续航
-    'Model Y': 525,  // Model Y Long Range EPA续航
-    'default': 500   // 默认值
-  };
-  
-  const epaRange = EPA_RANGES[carModel || 'default'] || EPA_RANGES['default'];
-  
-  // 计算消耗的能量 (Wh)
-  // 能量消耗 = (消耗续航 / EPA续航) * 电池容量 * 1000
-  const energyConsumed = (rangeUsed / epaRange) * batteryCapacity * 1000; // Wh
-  
-  // 计算能耗 (Wh/km)
-  return energyConsumed / distance;
-};
 
 // 格式化能耗显示
 export const formatEnergyConsumption = (whPerKm: number): string => {
-  return `${Math.round(whPerKm)} Wh/km`;
+  return `${(whPerKm*1000).toFixed(1)} Wh/km`;
 };
 
 // 时间过滤选项

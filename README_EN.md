@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Material-UI](https://img.shields.io/badge/Material--UI-7-blue)](https://mui.com/)
 
-The new version v2.7 is now available!
+The new version v2.8 is now available!
 
 English | [中文](README.md)
 

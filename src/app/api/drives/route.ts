@@ -80,7 +80,16 @@ export async function GET(request: NextRequest) {
         d.end_ideal_range_km,
         d.car_id,
         c.name as car_name,
-        c.model as car_model
+        c.model as car_model,
+        -- 新增核心字段：从 cars 表获取效率系数
+        c.efficiency,
+        -- 新增计算字段：平均能耗 (kWh/km)
+        -- 逻辑：(消耗的额定公里数 * 效率系数) / 实际行驶公里数
+        CASE 
+          WHEN d.distance > 0 THEN 
+            ((d.start_ideal_range_km - d.end_ideal_range_km) * c.efficiency) / d.distance 
+          ELSE 0 
+        END as avg_consumption
       FROM drives d
       LEFT JOIN cars c ON d.car_id = c.id
       LEFT JOIN addresses sa ON d.start_address_id = sa.id
