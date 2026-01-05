@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: shareven/asus-rebooter
+          images: shareven/teslashow
           tags: |
             type=semver,pattern={{version}}
             type=raw,value=latest,enable=${{ !contains(github.ref, '-') }}
