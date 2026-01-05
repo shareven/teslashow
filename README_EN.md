@@ -258,6 +258,8 @@ The configuration file has set up data volume mounts to ensure data persistence:
 
 Click [TeslaMate: upgrading PostgreSQL to a new major version](https://docs.teslamate.org/docs/maintenance/upgrading_postgres)
 
+- Note: The `volumes` directory needs to be changed.
+
 ## 🤝 Contributing
 
 We welcome all forms of contributions! Please check the [Contributing Guide](CONTRIBUTING.md) for details.
