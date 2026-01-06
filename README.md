@@ -257,7 +257,9 @@ docker-compose up -d
 
 参考 [TeslaMate 数据库升级指南](https://docs.teslamate.org/docs/maintenance/upgrading_postgres)
 
-- 注意：volumes目录要改
+> 注意：备份数据库
+>
+> volumes目录要改
 
 ## 🤝 贡献指南
 
