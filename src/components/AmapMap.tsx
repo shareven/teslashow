@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Alert, CircularProgress } from '@mui/material';
+import { Box, Alert, CircularProgress, IconButton } from '@mui/material';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import { MapPoint, MapPath } from '@/types';
 import { convertToMapPoint } from '@/utils';
 
@@ -35,6 +37,7 @@ const AmapMap: React.FC<AmapMapProps> = ({
   const mapInstanceRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // 安全的数值处理和坐标转换
   const safeMapPoint = (point: MapPoint): MapPoint => {
@@ -215,6 +218,47 @@ const AmapMap: React.FC<AmapMapProps> = ({
     };
   }, [center, zoom, paths, markers, onMapReady]);
 
+  // 全屏切换后，等样式生效再让地图适配新视口尺寸
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const timer = setTimeout(() => {
+      const map = mapInstanceRef.current;
+      if (!map) return;
+      try {
+        if (typeof map.resize === 'function') {
+          map.resize();
+        }
+        if ((paths && paths.length > 0) || (markers && markers.length > 0)) {
+          map.setFitView(null, false, [20, 20, 20, 20]);
+        }
+      } catch (err) {
+        console.warn('全屏切换后调整地图失败:', err);
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFullscreen]);
+
+  // 全屏时支持 ESC 退出，并锁定页面滚动
+  useEffect(() => {
+    if (!isFullscreen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isFullscreen]);
+
   if (error) {
     return (
       <Box
@@ -239,6 +283,21 @@ const AmapMap: React.FC<AmapMapProps> = ({
         position: 'relative',
         overflow: 'hidden',
         borderRadius: 2,
+        ...(isFullscreen && {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          '@supports (height: 100dvh)': {
+            height: '100dvh',
+          },
+          zIndex: 1300,
+          borderRadius: 0,
+          backgroundColor: 'background.paper',
+        }),
       }}
     >
       {loading && (
@@ -268,8 +327,29 @@ const AmapMap: React.FC<AmapMapProps> = ({
           height: '100%',
           borderRadius: 2,
           overflow: 'hidden',
+          ...(isFullscreen && {
+            borderRadius: 0,
+          }),
         }}
       />
+      <IconButton
+        onClick={() => setIsFullscreen((v) => !v)}
+        aria-label={isFullscreen ? '退出全屏' : '全屏显示'}
+        size="small"
+        sx={{
+          position: 'absolute',
+          top: isFullscreen ? 'max(12px, env(safe-area-inset-top))' : 12,
+          left: 12,
+          zIndex: 1001,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 1)',
+          },
+        }}
+      >
+        {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+      </IconButton>
     </Box>
   );
 };
