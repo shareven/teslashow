@@ -119,7 +119,7 @@ const FootprintPage: React.FC = () => {
       setStatistics(data.statistics);
       setPositions(data.positions);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');debugger;
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
       setLoading(false);
     }

@@ -119,31 +119,6 @@ export async function GET(request: NextRequest) {
     console.log(`✅ 数据库查询完成，耗时: ${queryTime}ms`);
 
     const drives = drivesResult.rows;
-     // --- 调试日志系统开始 ---
-    console.log(`📊 --- 调试日志系统开始 ---`);
-    console.log(`📊 [DEBUG] 本次查询返回 ${drives.length} 条记录`);
-    
-    drives.forEach((row, idx) => {
-      // 如果能耗为 0，且实际有行驶距离，则触发深度日志
-      if (row.avg_consumption == 0 && row.distance > 0) {
-        const rangeDiff = (row.start_ideal_range_km || 0) - (row.end_ideal_range_km || 0);
-        console.warn(`⚠️ [DEBUG] 行程ID:${row.id} 能耗计算为 0 的原因排查:`);
-        console.warn(`   - 车辆名称: ${row.car_name} (ID: ${row.car_id})`);
-        console.warn(`   - 效率系数 (efficiency): ${row.efficiency} (若为空则结果必为 0)`);
-        console.warn(`   - 行驶距离 (distance): ${row.distance} km`);
-        console.warn(`   - 理想里程差 (range_diff): ${rangeDiff} km (Start: ${row.start_ideal_range_km}, End: ${row.end_ideal_range_km})`);
-        
-        if (!row.efficiency) {
-          console.error(`   ❌ 关键错误: 车辆 ${row.car_name} 在 cars 表中未设置 efficiency！`);
-        }
-        if (rangeDiff === 0) {
-          console.error(`   ❌ 关键错误: 行程前后理想里程相等，可能是 Tesla 数据未及时更新！`);
-        }
-      } else if (idx === 0) {
-        console.log(`✅ [DEBUG] 样本数据(ID:${row.id}): 距离=${row.distance}, 能耗=${row.avg_consumption}`);
-      }
-    });
-    // --- 调试日志系统结束 ---
     const total = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(total / limit);
 
