@@ -29,8 +29,7 @@
 1. 复制 `.env.docker.example` 为 `.env`
 2. 修改其中的配置值，特别是：
    - `DB_PASSWORD`: 数据库密码
-   - `AMAP_API_KEY`: 高德地图API密钥
-   - `AMAP_SECURITY_KEY`: 高德地图安全密钥
+   - `TDT_KEY`: 天地图浏览器端API密钥
    - `TESLASHOW_USER`: 登录用户名
    - `TESLASHOW_PASSWORD`: 登录密码
 

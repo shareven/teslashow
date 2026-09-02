@@ -146,78 +146,11 @@ export const getDateRange = (filter: TimeFilter, customStart?: string, customEnd
   };
 };
 
-// 颜色工具函数
+// 颜色工具函数（排除黄/紫/棕色系，避免与天地图底图撞色）
 export const getRandomColor = (): string => {
   const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#98D8C8',
+    '#85C1E9', '#E74C3C', '#00BCD4'
   ];
   return colors[Math.floor(Math.random() * colors.length)];
-};
-
-// WGS84坐标系转换为GCJ02坐标系（用于高德地图）
-// TeslaMate数据库存储的是GPS原始坐标（WGS84），需要转换为中国国测局坐标系（GCJ02）
-const PI = 3.1415926535897932384626;
-const A = 6378245.0;
-const EE = 0.00669342162296594323;
-
-// 判断是否在中国境内
-const outOfChina = (lat: number, lng: number): boolean => {
-  return (lng < 72.004 || lng > 137.8347) || (lat < 0.8293 || lat > 55.8271);
-};
-
-// 转换纬度
-const transformLat = (lng: number, lat: number): number => {
-  let ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 
-            0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng));
-  ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0;
-  ret += (20.0 * Math.sin(lat * PI) + 40.0 * Math.sin(lat / 3.0 * PI)) * 2.0 / 3.0;
-  ret += (160.0 * Math.sin(lat / 12.0 * PI) + 320 * Math.sin(lat * PI / 30.0)) * 2.0 / 3.0;
-  return ret;
-};
-
-// 转换经度
-const transformLng = (lng: number, lat: number): number => {
-  let ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 
-            0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng));
-  ret += (20.0 * Math.sin(6.0 * lng * PI) + 20.0 * Math.sin(2.0 * lng * PI)) * 2.0 / 3.0;
-  ret += (20.0 * Math.sin(lng * PI) + 40.0 * Math.sin(lng / 3.0 * PI)) * 2.0 / 3.0;
-  ret += (150.0 * Math.sin(lng / 12.0 * PI) + 300.0 * Math.sin(lng / 30.0 * PI)) * 2.0 / 3.0;
-  return ret;
-};
-
-// WGS84转GCJ02
-const wgs84ToGcj02 = (lat: number, lng: number): { lat: number; lng: number } => {
-  if (outOfChina(lat, lng)) {
-    return { lat, lng };
-  }
-  
-  let dLat = transformLat(lng - 105.0, lat - 35.0);
-  let dLng = transformLng(lng - 105.0, lat - 35.0);
-  
-  const radLat = lat / 180.0 * PI;
-  let magic = Math.sin(radLat);
-  magic = 1 - EE * magic * magic;
-  const sqrtMagic = Math.sqrt(magic);
-  
-  dLat = (dLat * 180.0) / ((A * (1 - EE)) / (magic * sqrtMagic) * PI);
-  dLng = (dLng * 180.0) / (A / sqrtMagic * Math.cos(radLat) * PI);
-  
-  const mgLat = lat + dLat;
-  const mgLng = lng + dLng;
-  
-  return { lat: mgLat, lng: mgLng };
-};
-
-// 地图坐标转换 - 将WGS84坐标转换为适合高德地图的GCJ02坐标
-export const convertToMapPoint = (lat: number, lng: number) => {
-  // 安全检查
-  if (isNaN(lat) || isNaN(lng)) {
-    console.warn('Invalid coordinates:', { lat, lng });
-    return { lat: 39.916, lng: 116.397 }; // 返回北京坐标作为默认值
-  }
-  
-  // 进行坐标转换
-  const converted = wgs84ToGcj02(lat, lng);
-  return converted;
 };

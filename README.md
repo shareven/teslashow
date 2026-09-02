@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Material-UI](https://img.shields.io/badge/Material--UI-7-blue)](https://mui.com/)
 
-最新版本： v2.9
+最新版本： v3.0
 
 [English](README_EN.md) | 中文
 
@@ -20,11 +20,13 @@
 
 TeslaShow 是一个专为 TeslaMate 用户设计的现代化行程数据可视化系统。基于 Next.js 15 构建，提供直观美观的界面来展示您的 Tesla 行程数据、轨迹分析和统计信息。
 
+> **版本变更说明**：从 **v3.0** 开始，地图服务由高德地图切换为 [天地图](https://www.tianditu.gov.cn/)。v3.0 及以上版本请配置 `NEXT_PUBLIC_TDT_KEY`；仍在使用 **v2.x** 的用户请参考 [2.x 高德地图配置说明](#2x-版本高德地图配置)。
+
 ### ✨ 主要特性
 
 - 🚗 **行程管理** - 查看详细的历史行程列表和单次行程详情
 - 🔋 **充电管理** - 查看充电历史记录和详细的充电会话信息
-- 🗺️ **轨迹可视化** - 基于高德地图的行程轨迹展示
+- 🗺️ **轨迹可视化** - 基于天地图的行程轨迹展示
 - 📊 **数据统计** - 总里程、行驶时间、充电、能耗分析等统计信息
 - 🎨 **现代化UI** - Material Design 3 风格，支持多主题色彩
 - 📱 **响应式设计** - 完美适配桌面端和移动端
@@ -42,7 +44,7 @@ TeslaShow 是一个专为 TeslaMate 用户设计的现代化行程数据可视�
 <img src="img-show/drives.png" alt="行程列表页面" width="200">
 
 ### 行程详情页面
-- 高德地图展示完整行程轨迹
+- 天地图展示完整行程轨迹
 - 详细的行程数据卡片展示
 - 实时数据点信息（速度、功率、电量等）
 
@@ -79,7 +81,7 @@ TeslaShow 是一个专为 TeslaMate 用户设计的现代化行程数据可视�
 
 - **前端框架**: Next.js 15 (App Router)
 - **UI 组件库**: Material-UI v7
-- **地图服务**: 高德地图 API
+- **地图服务**: 天地图 API
 - **数据库**: PostgreSQL (TeslaMate)
 - **样式框架**: Tailwind CSS
 - **状态管理**: React Hooks
@@ -92,7 +94,7 @@ TeslaShow 是一个专为 TeslaMate 用户设计的现代化行程数据可视�
 ### 前置要求
 
 - Docker 和 Docker Compose
-- 高德地图 API 密钥
+- 天地图 API 密钥
 
 ### 部署步骤
 
@@ -187,11 +189,8 @@ services:
       - TESLASHOW_USER=username       # Use the username to login ui
       - TESLASHOW_PASSWORD=password 	# Use the password to login ui
       
-      # Amap API Configuration
-      # Please apply for your API keys at Amap Open Platform (https://lbs.amap.com/)
-      - NEXT_PUBLIC_AMAP_API_KEY=your_amap_api_key_here
-      # Amap security key - Get it from application management in Amap Open Platform
-      - NEXT_PUBLIC_AMAP_SECURITY_KEY=your_amap_security_key_here
+      # Please apply for your API key at Tianditu (https://www.tianditu.gov.cn/)
+      - NEXT_PUBLIC_TDT_KEY=your_tdt_key_here
 ```
 
 3. **修改配置参数**
@@ -200,7 +199,7 @@ services:
  
  - **数据库密码**：将所有 `password` 替换为安全密码
  - **加密密钥**：将 `secretkey` 替换为安全的加密密钥
- - **高德地图API**：配置您的高德地图API密钥
+ - **NEXT_PUBLIC_TDT_KEY**：配置您的天地图API密钥
  - **TESLASHOW_USER**：配置您的登录用户名
  - **TESLASHOW_PASSWORD**：配置您的登录密码
  
@@ -234,24 +233,30 @@ docker-compose up -d
 - `./teslamate-grafana-data`: Grafana 配置数据
 - `./import`: TeslaMate 导入数据目录
 
-## ⚙️ 高德地图 API 配置
+## ⚙️ 天地图 API 配置
 
 ### 获取 API 密钥
 
-1. 访问 [高德开放平台](https://lbs.amap.com/)
-2. 注册并登录账号
-3. 创建应用并获取 API Key
-4. 在应用管理中获取安全密钥（Security Key）
-5. 确保启用了以下服务：
-   - Web服务API
-   - Web端（JS API）
+1. 访问 [天地图官网](https://www.tianditu.gov.cn/)，注册成为开发者
+2. 登录后进入「控制台」→「创建应用」，应用类型选择 **浏览器端**
+3. 获取 API Key（tk）
 
 ### 配置说明
 
 | 环境变量 | 描述 | 必需 |
 |---------|------|------|
-| `NEXT_PUBLIC_AMAP_API_KEY` | 高德地图 API 密钥 | ✅ |
-| `NEXT_PUBLIC_AMAP_SECURITY_KEY` | 高德地图安全密钥 | ✅ |
+| `NEXT_PUBLIC_TDT_KEY` | 天地图浏览器端 API 密钥 | ✅ |
+
+### 2.x 版本高德地图配置
+
+v2.x 及更早版本使用高德地图，需要以下两个环境变量（v3.0 起已废弃，升级后无需配置）：
+
+| 环境变量 | 描述 | 必需 |
+|---------|------|------|
+| `NEXT_PUBLIC_AMAP_API_KEY` | 高德地图 Web 端 API Key | ✅（仅 2.x） |
+| `NEXT_PUBLIC_AMAP_SECURITY_KEY` | 高德地图安全密钥 | ✅（仅 2.x） |
+
+密钥在 [高德开放平台](https://lbs.amap.com/) → 应用管理中创建获取。
 
 ## 升级PostgreSQL数据库版本
 
@@ -282,7 +287,7 @@ docker-compose up -d
 - [TeslaMate](https://github.com/teslamate-org/teslamate) - 优秀的 Tesla 数据记录工具
 - [Next.js](https://nextjs.org/) - 强大的 React 框架
 - [Material-UI](https://mui.com/) - 美观的 React 组件库
-- [高德地图](https://lbs.amap.com/) - 可靠的地图服务
+- [天地图](https://www.tianditu.gov.cn/) - 国家地理信息公共服务
 
 ## 📞 支持
 

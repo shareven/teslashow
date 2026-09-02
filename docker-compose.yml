@@ -68,8 +68,5 @@ services:
       - TESLASHOW_USER=username       # Use the username to login ui
       - TESLASHOW_PASSWORD=password 	# Use the password to login ui
       
-      # Amap API Configuration
-      # Please apply for your API keys at Amap Open Platform (https://lbs.amap.com/)
-      - NEXT_PUBLIC_AMAP_API_KEY=your_amap_api_key_here
-      # Amap security key - Get it from application management in Amap Open Platform
-      - NEXT_PUBLIC_AMAP_SECURITY_KEY=your_amap_security_key_here
+      # Please apply for your API key at Tianditu (https://www.tianditu.gov.cn/)
+      - NEXT_PUBLIC_TDT_KEY=your_tdt_key_here

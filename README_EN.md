@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Material-UI](https://img.shields.io/badge/Material--UI-7-blue)](https://mui.com/)
 
-The new version v2.8 is now available!
+The new version v3.0 is now available!
 
 English | [中文](README.md)
 
@@ -20,11 +20,13 @@ English | [中文](README.md)
 
 TeslaShow is a modern trip data visualization system designed specifically for TeslaMate users. Built with Next.js 15, it provides an intuitive and beautiful interface to display your Tesla trip data, trajectory analysis, and statistical information.
 
+> **Version Note**: Starting from **v3.0**, the map service has switched from Amap to [Tianditu](https://www.tianditu.gov.cn/). For v3.0 and above, configure `NEXT_PUBLIC_TDT_KEY`. Users still on **v2.x** should refer to the [2.x Amap Configuration](#2x-versions-amap-configuration).
+
 ### ✨ Key Features
 
 - 🚗 **Trip Management** - View detailed historical trip lists and individual trip details
 - 🔋 **Charging Management** - View charging history records and detailed charging session information
-- 🗺️ **Trajectory Visualization** - Trip trajectory display based on Amap
+- 🗺️ **Trajectory Visualization** - Trip trajectory display based on Tianditu
 - 📊 **Data Statistics** - Total mileage, driving time, energy consumption analysis and other statistical information
 - 🎨 **Modern UI** - Material Design 3 style with multiple theme color support
 - 📱 **Responsive Design** - Perfect adaptation for desktop and mobile devices
@@ -42,7 +44,7 @@ TeslaShow is a modern trip data visualization system designed specifically for T
 <img src="img-show/drives.png" alt="Trip List Page" width="200">
 
 ### Trip Details Page
-- Amap displays complete trip trajectory
+- Tianditu displays complete trip trajectory
 - Detailed trip data cards
 - Real-time data point information (speed, power, battery level, etc.)
 
@@ -79,7 +81,7 @@ TeslaShow is a modern trip data visualization system designed specifically for T
 
 - **Frontend Framework**: Next.js 15 (App Router)
 - **UI Component Library**: Material-UI v7
-- **Map Service**: Amap API
+- **Map Service**: Tianditu API
 - **Database**: PostgreSQL (TeslaMate)
 - **Styling Framework**: Tailwind CSS
 - **State Management**: React Hooks
@@ -92,7 +94,7 @@ TeslaShow is a modern trip data visualization system designed specifically for T
 ### Prerequisites
 
 - Docker and Docker Compose
-- Amap API keys
+- Tianditu API key
 
 ### Deployment Steps
 
@@ -187,12 +189,8 @@ services:
       - TESLASHOW_USER=username       # Use the username to login ui
       - TESLASHOW_PASSWORD=password 	# Use the password to login ui
       
-      
-      # Amap API Configuration
-      # Please apply for your API keys at Amap Open Platform (https://lbs.amap.com/)
-      - NEXT_PUBLIC_AMAP_API_KEY=your_amap_api_key_here
-      # Amap security key - Get it from application management in Amap Open Platform
-      - NEXT_PUBLIC_AMAP_SECURITY_KEY=your_amap_security_key_here
+      # Please apply for your API key at Tianditu (https://www.tianditu.gov.cn/)
+      - NEXT_PUBLIC_TDT_KEY=your_tdt_key_here
 ```
 
 3. **Modify configuration parameters**
@@ -201,7 +199,7 @@ services:
  
  - **Database password**: Replace all `password` with a secure password
  - **Encryption key**: Replace `secretkey` with a secure encryption key
- - **Amap API**: Configure your Amap API keys
+ - **NEXT_PUBLIC_TDT_KEY**: Configure your Tianditu API key
  - **TESLASHOW_USER**: Configure your login username
  - **TESLASHOW_PASSWORD**: Configure your login password
  
@@ -235,24 +233,30 @@ The configuration file has set up data volume mounts to ensure data persistence:
 - `./teslamate-grafana-data`: Grafana configuration data
 - `./import`: TeslaMate import data directory
 
-## ⚙️ Amap API Configuration
+## ⚙️ Tianditu API Configuration
 
 ### Getting API Keys
 
-1. Visit [Amap Open Platform](https://lbs.amap.com/)
-2. Register and login to your account
-3. Create an application and get API Key
-4. Get security key (Security Key) in application management
-5. Ensure the following services are enabled:
-   - Web Service API
-   - Web (JS API)
+1. Visit [Tianditu](https://www.tianditu.gov.cn/) and register as a developer
+2. Go to "Console" → "Create Application" and choose the **browser-side** application type
+3. Get your API Key (tk)
 
 ### Configuration Description
 
 | Environment Variable | Description | Required |
 |---------------------|-------------|----------|
-| `NEXT_PUBLIC_AMAP_API_KEY` | Amap API key | ✅ |
-| `NEXT_PUBLIC_AMAP_SECURITY_KEY` | Amap security key | ✅ |
+| `NEXT_PUBLIC_TDT_KEY` | Tianditu browser API key | ✅ |
+
+### 2.x Versions: Amap Configuration
+
+v2.x and earlier versions use Amap and require the following environment variables (deprecated since v3.0, not needed after upgrading):
+
+| Environment Variable | Description | Required |
+|---------------------|-------------|----------|
+| `NEXT_PUBLIC_AMAP_API_KEY` | Amap Web API key | ✅ (2.x only) |
+| `NEXT_PUBLIC_AMAP_SECURITY_KEY` | Amap security key | ✅ (2.x only) |
+
+Keys can be created at [Amap Open Platform](https://lbs.amap.com/) → Application Management.
 
 ## Upgrading PostgreSQL to a new major version
 
@@ -283,7 +287,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [TeslaMate](https://github.com/teslamate-org/teslamate) - Excellent Tesla data logging tool
 - [Next.js](https://nextjs.org/) - Powerful React framework
 - [Material-UI](https://mui.com/) - Beautiful React component library
-- [Amap](https://lbs.amap.com/) - Reliable map service
+- [Tianditu](https://www.tianditu.gov.cn/) - National geographic information service
 
 ## 📞 Support
 

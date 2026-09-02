@@ -17,7 +17,7 @@ import {
   Avatar
 } from '@mui/material';
 import { DirectionsCar, BatteryChargingFull, ElectricBolt, Schedule, TrendingUp, LocationOn } from '@mui/icons-material';
-import AmapMap from '@/components/AmapMap';
+import TiandituMap from '@/components/TiandituMap';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import TimeFilter from '@/components/TimeFilter';
@@ -30,7 +30,6 @@ import {
   formatDistance,
   formatDuration,
   getRandomColor,
-  convertToMapPoint,
   timeFilterOptions,
   getDateRange,
   formatEnergyConsumption,
@@ -438,7 +437,7 @@ const FootprintPage: React.FC = () => {
                     <CircularProgress size={60} />
                   </Box>
                 ) : (
-                  <AmapMap
+                  <TiandituMap
                     center={mapCenter}
                     zoom={isMobile ? 9 : 10}
                     paths={mapPaths}

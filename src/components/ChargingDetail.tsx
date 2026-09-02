@@ -29,7 +29,6 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { ChargingProcess, ChargingData, MapPoint } from '@/types';
-import { convertToMapPoint } from '@/utils';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import dayjs from 'dayjs';
@@ -615,8 +614,7 @@ const ChargingDetail: React.FC<ChargingDetailProps> = ({ chargingId }) => {
                   variant="h6" 
                   onClick={() => {
                     if (chargingProcess.address && chargingProcess.latitude && chargingProcess.longitude) {
-                      const convertedCoords = convertToMapPoint(chargingProcess.latitude, chargingProcess.longitude);
-                      router.push(`/charging/map?address=${encodeURIComponent(chargingProcess.address)}&lat=${convertedCoords.lat}&lng=${convertedCoords.lng}`);
+                      router.push(`/charging/map?address=${encodeURIComponent(chargingProcess.address)}&lat=${chargingProcess.latitude}&lng=${chargingProcess.longitude}`);
                     }
                   }}
                   sx={{ 

@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AmapMap from './AmapMap';
+import TiandituMap from './TiandituMap';
 import { MapPoint } from '@/types';
 
 // 格式化地址
@@ -117,7 +117,7 @@ const MapPage: React.FC = () => {
         overflow: 'hidden',
         boxShadow: 1
       }}>
-        <AmapMap
+        <TiandituMap
           center={mapCenter}
           zoom={15}
           markers={markers}

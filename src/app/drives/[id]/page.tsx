@@ -31,7 +31,7 @@ import {
   ElectricBolt,
 } from '@mui/icons-material';
 import { useRouter, useParams } from 'next/navigation';
-import AmapMap from '@/components/AmapMap';
+import TiandituMap from '@/components/TiandituMap';
 import { Drive, Position, MapPoint, MapPath } from '@/types';
 import {
   formatDistance,
@@ -43,7 +43,7 @@ import {
   formatEnergyConsumption,
   safeNumber,
   safeToFixed,
-  convertToMapPoint,
+  getRandomColor,
 } from '@/utils';
 import apiClient from '@/lib/apiClient';
 import dayjs from 'dayjs';
@@ -305,14 +305,14 @@ const DriveDetailPage: React.FC = () => {
 
 
   // 准备地图数据
-  const mapCenter: MapPoint = convertToMapPoint(
-    (safeNumber(drive.start_latitude) + safeNumber(drive.end_latitude)) / 2,
-    (safeNumber(drive.start_longitude) + safeNumber(drive.end_longitude)) / 2
-  );
+  const mapCenter: MapPoint = {
+    lat: (safeNumber(drive.start_latitude) + safeNumber(drive.end_latitude)) / 2,
+    lng: (safeNumber(drive.start_longitude) + safeNumber(drive.end_longitude)) / 2,
+  };
 
   const mapPaths: MapPath[] = positions.length > 0 ? [{
     points: positions.map(pos => ({ lat: safeNumber(pos.latitude), lng: safeNumber(pos.longitude) })),
-    color: '#FF6B6B',
+    color: getRandomColor(),
     weight: 4,
     opacity: 0.8,
   }] : [];
@@ -377,7 +377,7 @@ const DriveDetailPage: React.FC = () => {
                   paddingBottom: 0
                 }
               }}>
-                <AmapMap
+                <TiandituMap
                   center={mapCenter}
                   zoom={isMobile ? 11 : 12}
                   paths={mapPaths}
