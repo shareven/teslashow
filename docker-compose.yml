@@ -54,6 +54,7 @@ services:
   teslashow:
     # build: .  # Build from local Dockerfile
     image: shareven/teslashow:latest  # Or use pre-built image
+    restart: always
     depends_on:
       - database
     ports:
